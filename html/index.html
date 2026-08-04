@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <title>Cipher Characters</title>
+</head>
+<body>
+    <main id="app" class="hidden">
+        <div class="grain"></div>
+        <section class="brand">
+            <span id="title">CIPHER</span>
+            <small id="subtitle">IDENTITY NETWORK</small>
+        </section>
+
+        <section id="characterView" class="panel character-panel">
+            <div class="panel-heading">
+                <div><small id="selectProfile">SELECT PROFILE</small><h1 id="yourCharacters">Your characters</h1></div>
+                <span id="count"></span>
+            </div>
+            <div id="slots" class="slots"></div>
+            <p id="emptyText" class="muted"></p>
+        </section>
+
+        <section id="detailView" class="dossier hidden"></section>
+
+        <section id="createView" class="modal hidden">
+            <form id="createForm" class="modal-card">
+                <small id="newProfile">NEW PROFILE</small>
+                <h2 id="createHeading">Create a character</h2>
+                <input type="hidden" id="cid">
+                <div class="two">
+                    <label><span id="firstNameLabel">First name</span><input id="firstname" required></label>
+                    <label><span id="lastNameLabel">Last name</span><input id="lastname" required></label>
+                </div>
+                <div class="two">
+                    <label><span id="birthdateLabel">Date of birth</span><input id="birthdate" required></label>
+                    <label><span id="nationalityLabel">Nationality</span><input id="nationality" required></label>
+                </div>
+                <label><span id="genderLabel">Gender</span><select id="gender"><option value="0"></option><option value="1"></option></select></label>
+                <div class="actions"><button type="button" class="ghost" data-close id="createBack">Back</button><button type="submit" id="createButton">Create character</button></div>
+            </form>
+        </section>
+
+        <section id="deleteView" class="modal hidden">
+            <div class="modal-card">
+                <small id="permanentAction">PERMANENT ACTION</small>
+                <h2 id="deleteHeading">Delete this character?</h2>
+                <p><span id="deleteWarning">This cannot be undone.</span> <span id="deleteInstruction"></span></p>
+                <input id="deleteInput" autocomplete="off">
+                <div class="actions"><button class="ghost" data-close id="deleteCancel">Cancel</button><button id="confirmDelete" class="danger">Delete</button></div>
+            </div>
+        </section>
+
+        <section id="spawnView" class="panel spawn-panel hidden">
+            <div class="panel-heading"><div><small id="arrival">ARRIVAL</small><h1 id="chooseSpawn">Where are you heading?</h1></div></div>
+            <div id="spawnFocus" class="spawn-focus hidden"><small id="spawnDistrictLabel">DISTRICT</small><strong id="spawnFocusTitle"></strong><span id="spawnFocusDistrict"></span></div>
+            <div id="spawns" class="spawn-list"></div>
+        </section>
+
+        <section id="adminView" class="admin-overlay hidden">
+            <div class="admin-card">
+                <div class="admin-heading">
+                    <div><small id="adminEyebrow">CIPHER CONTROL</small><h2 id="adminTitle">Character slot manager</h2></div>
+                    <button id="adminClose" class="icon-button">×</button>
+                </div>
+                <div class="admin-columns"><span id="adminPlayerLabel">Player</span><span id="adminCharactersLabel">Characters</span><span id="adminSlotsLabel">Slots</span><span></span></div>
+                <div id="adminPlayers" class="admin-players"></div>
+            </div>
+        </section>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+.spawn-category {
+    margin: 9px 2px 1px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.spawn-category:first-child {
+    margin-top: 0;
+}
+
+.slots,
+.spawn-list {
+    overflow-x: hidden;
+}
+
+.slot:hover,
+.slot:focus {
+    transform: none;
+}
+
+.admin-overlay {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(3, 4, 8, .82);
+    backdrop-filter: blur(7px);
+}
+
+.admin-card {
+    width: min(880px, 90vw);
+    max-height: 80vh;
+    padding: 28px;
+    background: #101119;
+    border: 1px solid var(--line);
+    box-shadow: 0 35px 120px #000;
+}
+
+.admin-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.admin-heading small {
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: .16em;
+}
+
+.admin-heading h2 {
+    margin: 5px 0 0;
+}
+
+.icon-button {
+    padding: 4px 11px;
+    background: transparent;
+    border: 1px solid var(--line);
+    font-size: 22px;
+}
+
+.admin-columns,
+.admin-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 100px 210px;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-columns {
+    padding: 0 13px 8px;
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+
+.admin-players {
+    display: grid;
+    gap: 7px;
+    max-height: 58vh;
+    overflow: auto;
+}
+
+.admin-row {
+    padding: 11px 13px;
+    background: rgba(255, 255, 255, .035);
+    border: 1px solid var(--line);
+}
+
+.admin-row strong,
+.admin-row > div > span {
+    display: block;
+}
+
+.admin-row > div > span {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.admin-row input {
+    margin: 0;
+    padding: 9px;
+}
+
+.admin-count {
+    color: var(--muted);
+}
+
+.admin-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.admin-actions button {
+    padding: 9px 11px;
+}
+
+.admin-empty {
+    padding: 35px;
+    text-align: center;
+    color: var(--muted);
+}
+
+@media (max-width: 900px) {
+    .admin-columns,
+    .admin-row {
+        grid-template-columns: 1fr 60px 80px 170px;
+    }
+}
