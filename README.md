@@ -3,7 +3,7 @@
 <p align="center">A cinematic identity, character selection, and spawn flow for <strong>QBox</strong> and <strong>QBCore</strong>.</p>
 
 <p align="center">
-  <a href="https://github.com/XyraL/cipher-multicharacter/releases"><img src="https://img.shields.io/github/v/release/XyraL/cipher-multicharacter?style=flat-square&color=a889ff&label=release" alt="Latest release"></a>
+  <a href="https://github.com/XyraL/cipher-multicharacter/releases"><img src="https://img.shields.io/github/v/release/XyraL/cipher-multicharacter?style=flat-square&color=ff7ad9&label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/framework-QBox%20%7C%20QBCore-55dcff?style=flat-square" alt="framework">
   <img src="https://img.shields.io/badge/price-free-30d158?style=flat-square" alt="price">
   <a href="https://discord.gg/XRURAw4TM2"><img src="https://img.shields.io/badge/support-discord-5865F2?style=flat-square" alt="support"></a>
@@ -311,3 +311,31 @@ If you use a custom apartment event that does not open clothing, set `Config.Fir
 - Keep spawn IDs unique.
 - Grant `cipher.multichar.admin` only to staff who should manage persistent slot limits.
 - Do not start the old multicharacter resource beside this one.
+
+## Documentation
+
+Full setup guide, requirements and troubleshooting:
+**[xyralscripts.dev/docs-cipher-multicharacter](https://xyralscripts.dev/docs-cipher-multicharacter)**
+
+## Support
+
+- **Found a bug?** [Open an issue](https://github.com/XyraL/cipher-multicharacter/issues)
+- **Need setup help?** [Join the Discord](https://discord.gg/XRURAw4TM2) — check the setup guide first, it usually has the answer
+
+## The rest of the Cipher line
+
+All free, all source-available.
+
+| Script | What it is |
+|---|---|
+| **[Cipher](https://github.com/XyraL/cipher)** | modular criminal device for QBox and QBCore — gang ops, blackmarket and boosting in one encrypted tablet. |
+| **[Cipher MDT](https://github.com/XyraL/cipher-mdt)** | multi-department MDT for QBox — police, EMS and fire with live CAD, records, patient care and a live unit map. |
+| **[Cipher Admin](https://github.com/XyraL/cipher-admin)** | advanced admin suite for QBox and QBCore — player management, bans, reports, inventory tools and entity inspection. |
+| **[Cipher Drone](https://github.com/XyraL/cipher-drone)** | deployable police drone for QBox and QBCore — smooth flight, thermal, spotlight, tracker darts and real counterplay. |
+| **[Cipher Trucking](https://github.com/XyraL/cipher-trucking)** | civilian trucking job for QBox and QBCore — live route map, truck ownership, fuel and maintenance, and companies. |
+| **[Cipher Dispatch](https://github.com/XyraL/cipher-dispatch)** | multi-department live dispatch for QBox and QBCore — responder tracking, priority calls, TAC radio and provider integrations. |
+
+## License
+
+Free to use on any server you own or operate, including commercial ones.
+**Do not redistribute or resell** — see [LICENSE](LICENSE) for the full terms.
