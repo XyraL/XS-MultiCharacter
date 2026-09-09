@@ -86,7 +86,7 @@ function selectCharacter(character) {
     detail.classList.remove('hidden');
     detail.innerHTML = `
         <div class="dossier-top"><div><small>${escapeHtml(text('identityFile'))}</small><h2>${escapeHtml(character.charinfo.firstname)} ${escapeHtml(character.charinfo.lastname)}</h2></div><span class="verified"><i></i>${escapeHtml(text('identityVerified'))}</span></div>
-        <div class="cipher-line"><span></span></div>
+        <div class="xs-line"><span></span></div>
         <div class="dossier-grid">
             ${config.ui.showCitizenId ? dossierField(text('citizenId'), dossier.citizenid) : ''}
             ${dossierField(text('job'), dossier.job?.label)}

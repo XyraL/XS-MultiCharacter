@@ -6,9 +6,9 @@ Config.Server.Slots = {
 
     -- Highest matching value wins. Add the ACE in server.cfg with add_ace.
     ace = {
-        { permission = 'cipher.slots.6', slots = 6 },
-        { permission = 'cipher.slots.8', slots = 8 },
-        { permission = 'cipher.slots.10', slots = 10 }
+        { permission = 'xs.slots.6', slots = 6 },
+        { permission = 'xs.slots.8', slots = 8 },
+        { permission = 'xs.slots.10', slots = 10 }
     },
 
     -- Handy for a one-off override. The key must be the full FiveM identifier.
@@ -28,7 +28,7 @@ Config.Server.Activity = {
 
 Config.Server.Admin = {
     enabled = true,
-    ace = 'cipher.multichar.admin',
+    ace = 'xs.multichar.admin',
     command = 'charslots'
 }
 

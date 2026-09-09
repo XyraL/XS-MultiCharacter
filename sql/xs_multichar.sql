@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS `cipher_multichar_activity` (
+CREATE TABLE IF NOT EXISTS `xs_multichar_activity` (
     `citizenid` VARCHAR(64) NOT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `last_played` TIMESTAMP NULL DEFAULT NULL,
     `playtime_seconds` BIGINT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (`citizenid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-CREATE TABLE IF NOT EXISTS `cipher_multichar_slots` (
+CREATE TABLE IF NOT EXISTS `xs_multichar_slots` (
     `license` VARCHAR(64) NOT NULL,
     `slots` TINYINT UNSIGNED NOT NULL,
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -1,10 +1,10 @@
-CipherApartments = {}
+XSApartments = {}
 
 local function running(resource)
     return GetResourceState(resource):find('start') ~= nil
 end
 
-function CipherApartments.open(character)
+function XSApartments.open(character)
     local mode = Config.FirstCharacter.apartments.mode
     if mode == 'auto' then mode = Config.Client.Integrations.apartments end
     if mode == 'auto' then

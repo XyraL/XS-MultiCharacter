@@ -1,6 +1,6 @@
-CipherHousing = {}
+XSHousing = {}
 
-function CipherHousing.clearInside()
+function XSHousing.clearInside()
     local mode = Config.Client.Integrations.housing
     if mode == 'auto' then
         if GetResourceState('qbx_properties'):find('start') then mode = 'qbx_properties'

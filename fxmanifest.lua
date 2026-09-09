@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-name 'Cipher-MultiCharacter'
+name 'XS-MultiCharacter'
 author 'XyraL'
 description 'A clean multicharacter and spawn flow for Qbox and QBCore.'
 version '2.1.2'

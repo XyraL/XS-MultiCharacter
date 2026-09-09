@@ -4,10 +4,10 @@ local activeCharacter, activeCharacterData
 local waitingForClothing, selectorOpen = false, false
 local previewToken = 0
 
-if not CipherValidation.print('client') then return end
+if not XSValidation.print('client') then return end
 
 local function debugPrint(message)
-    if Config.Debug then print(('[Cipher-MultiCharacter] %s'):format(message)) end
+    if Config.Debug then print(('[XS-MultiCharacter] %s'):format(message)) end
 end
 
 local function fadeOut()
@@ -37,8 +37,8 @@ local function removeScene()
     NetworkEndTutorialSession()
     DisplayRadar(true)
     ClearFocus()
-    CipherWeather.leaveScene()
-    CipherSceneEffects.leave()
+    XSWeather.leaveScene()
+    XSSceneEffects.leave()
 end
 
 local function requestModel(model)
@@ -54,7 +54,7 @@ local function showPed(character, fallbackGender)
     destroyPreviewPed()
     previewToken = token
     local gender = character and character.charinfo and character.charinfo.gender or fallbackGender or 0
-    local model = CipherAppearance.model(character and character.appearance, gender)
+    local model = XSAppearance.model(character and character.appearance, gender)
     if not requestModel(model) or token ~= previewToken then return end
     local pos = Config.Client.Scene.coords
     previewPed = CreatePed(2, model, pos.x, pos.y, pos.z - 1.0, pos.w, false, true)
@@ -62,11 +62,11 @@ local function showPed(character, fallbackGender)
     FreezeEntityPosition(previewPed, true)
     SetBlockingOfNonTemporaryEvents(previewPed, true)
     SetPedDefaultComponentVariation(previewPed)
-    if character and character.appearance then CipherAppearance.apply(previewPed, character.appearance) end
+    if character and character.appearance then XSAppearance.apply(previewPed, character.appearance) end
     local jobName = character and character.job and character.job.name
-    CipherAnimation.play(previewPed, jobName)
+    XSAnimation.play(previewPed, jobName)
     SetModelAsNoLongerNeeded(model)
-    TriggerEvent('cipher-multichar:client:characterPreviewed', character, previewPed)
+    TriggerEvent('XS-MultiCharacter:client:characterPreviewed', character, previewPed)
 end
 
 local function createCamera(coords, lookAt, interpolate)
@@ -74,7 +74,7 @@ local function createCamera(coords, lookAt, interpolate)
     SetCamCoord(newCamera, coords.x, coords.y, coords.z)
     PointCamAtCoord(newCamera, lookAt.x, lookAt.y, lookAt.z)
     SetCamFov(newCamera, Config.Client.CinematicSpawn.fov)
-    CipherSceneEffects.applyCamera(newCamera)
+    XSSceneEffects.applyCamera(newCamera)
     SetCamActive(newCamera, true)
     if previewCam and interpolate then
         local previous = previewCam
@@ -96,15 +96,15 @@ local function setupScene()
     ShutdownLoadingScreenNui()
     NetworkStartSoloTutorialSession()
     DisplayRadar(false)
-    CipherWeather.enterScene()
-    CipherSceneEffects.enter()
+    XSWeather.enterScene()
+    XSSceneEffects.enter()
     local scene = Config.Client.Scene
     SetEntityCoords(PlayerPedId(), scene.coords.x, scene.coords.y, scene.coords.z - 5.0, false, false, false, false)
     FreezeEntityPosition(PlayerPedId(), true)
     SetEntityVisible(PlayerPedId(), false, false)
     showPed(nil, 0)
     createCamera(scene.camera, scene.cameraLookAt, false)
-    CipherSceneEffects.startOrbit(previewCam, scene.camera, scene.cameraLookAt)
+    XSSceneEffects.startOrbit(previewCam, scene.camera, scene.cameraLookAt)
     DoScreenFadeIn(500)
 end
 
@@ -114,9 +114,9 @@ local function openCharacters()
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'loading',
-        config = { characters = Config.Characters, ui = Config.Client.UI, locale = CipherLocaleTable() }
+        config = { characters = Config.Characters, ui = Config.Client.UI, locale = XSLocaleTable() }
     })
-    TriggerServerEvent('cipher-multichar:server:list')
+    TriggerServerEvent('XS-MultiCharacter:server:list')
 end
 
 local function spawnAt(coords, spawnId)
@@ -131,11 +131,11 @@ local function spawnAt(coords, spawnId)
     SetEntityHeading(ped, coords.w or coords.heading or 0.0)
     local deadline = GetGameTimer() + 10000
     while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < deadline do Wait(0) end
-    CipherBridge.clearInside()
-    CipherBridge.playerLoaded()
+    XSBridge.clearInside()
+    XSBridge.playerLoaded()
     DoScreenFadeIn(700)
-    TriggerEvent('cipher-multichar:client:characterSpawned', activeCharacter, spawnId, coords)
-    TriggerServerEvent('cipher-multichar:server:spawned', spawnId)
+    TriggerEvent('XS-MultiCharacter:client:characterSpawned', activeCharacter, spawnId, coords)
+    TriggerServerEvent('XS-MultiCharacter:server:spawned', spawnId)
 end
 
 local function cameraFor(location)
@@ -146,12 +146,12 @@ local function cameraFor(location)
 end
 
 local function openSpawns(position, allowedIds)
-    CipherSceneEffects.stopOrbit()
+    XSSceneEffects.stopOrbit()
     local allowed, options = {}, {}
     for _, id in ipairs(allowedIds or {}) do allowed[id] = true end
     if allowed.last and Config.Spawn.allowLastLocation and position and position.x then
         options[#options + 1] = {
-            id = 'last', label = CipherLocale('lastLocation'), description = CipherLocale('lastLocationDescription'),
+            id = 'last', label = XSLocale('lastLocation'), description = XSLocale('lastLocationDescription'),
             district = GetLabelText(GetNameOfZone(position.x, position.y, position.z)), coords = position,
             category = Config.Spawn.lastLocationCategory
         }
@@ -175,7 +175,7 @@ local function openApartmentsAfterClothing()
         while IsNuiFocused() and GetGameTimer() < deadline do Wait(100) end
         if Config.FirstCharacter.apartments.enabled
             and Config.FirstCharacter.apartments.opensClothingAfterSelection == false then
-            CipherBridge.openApartments(activeCharacterData or activeCharacter)
+            XSBridge.openApartments(activeCharacterData or activeCharacter)
         end
     end)
 end
@@ -187,7 +187,7 @@ end
 exports('GetSelectedCharacter', function() return activeCharacter, activeCharacterData end)
 exports('IsSelectingCharacter', function() return selectorOpen end)
 
-RegisterNetEvent('cipher-multichar:client:list', function(payload)
+RegisterNetEvent('XS-MultiCharacter:client:list', function(payload)
     characters = payload.characters or {}
     for _, character in ipairs(characters) do
         if character.position and character.position.x and character.dossier and character.dossier.activity then
@@ -197,24 +197,24 @@ RegisterNetEvent('cipher-multichar:client:list', function(payload)
     SendNUIMessage({ action = 'characters', characters = characters, slots = payload.slots or 1 })
 end)
 
-RegisterNetEvent('cipher-multichar:client:adminOpen', function()
-    TriggerServerEvent('cipher-multichar:server:adminList')
+RegisterNetEvent('XS-MultiCharacter:client:adminOpen', function()
+    TriggerServerEvent('XS-MultiCharacter:server:adminList')
 end)
 
-RegisterNetEvent('cipher-multichar:client:adminData', function(payload)
+RegisterNetEvent('XS-MultiCharacter:client:adminData', function(payload)
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'adminSlots',
         players = payload.players or {},
         maximum = payload.maximum,
-        locale = CipherLocaleTable(),
+        locale = XSLocaleTable(),
         ui = Config.Client.UI
     })
 end)
 
-RegisterNetEvent('cipher-multichar:client:loggedIn', function(citizenid, position, isNew, playerData, allowedSpawns)
+RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, position, isNew, playerData, allowedSpawns)
     activeCharacter, activeCharacterData = citizenid, playerData
-    TriggerEvent('cipher-multichar:client:characterSelected', citizenid, isNew, playerData)
+    TriggerEvent('XS-MultiCharacter:client:characterSelected', citizenid, isNew, playerData)
     if isNew then
         waitingForClothing = false
         fadeOut()
@@ -227,14 +227,14 @@ RegisterNetEvent('cipher-multichar:client:loggedIn', function(citizenid, positio
         -- Starting either of those here would make the two menus overlap.
         if Config.FirstCharacter.apartments.enabled
             and Config.FirstCharacter.apartments.opensClothingAfterSelection ~= false
-            and CipherBridge.openApartments(activeCharacterData or activeCharacter) then
+            and XSBridge.openApartments(activeCharacterData or activeCharacter) then
             return
         end
 
         spawnAt(Config.Spawn.default, 'default')
         if Config.FirstCharacter.clothing.enabled and Config.FirstCharacter.clothing.mode ~= 'none' then
             waitingForClothing = true
-            CipherBridge.openClothing()
+            XSBridge.openClothing()
             CreateThread(function()
                 local deadline = GetGameTimer() + (Config.FirstCharacter.clothing.fallbackSeconds * 1000)
                 while waitingForClothing and not IsNuiFocused() and GetGameTimer() < deadline do Wait(100) end
@@ -252,12 +252,12 @@ RegisterNetEvent('cipher-multichar:client:loggedIn', function(citizenid, positio
     end
 end)
 
-RegisterNetEvent('cipher-multichar:client:spawnApproved', function(spawnId, coords)
+RegisterNetEvent('XS-MultiCharacter:client:spawnApproved', function(spawnId, coords)
     spawnAt(coords, spawnId)
 end)
 
-RegisterNetEvent('cipher-multichar:client:refresh', function()
-    TriggerServerEvent('cipher-multichar:server:list')
+RegisterNetEvent('XS-MultiCharacter:client:refresh', function()
+    TriggerServerEvent('XS-MultiCharacter:server:list')
 end)
 
 RegisterNUICallback('preview', function(data, cb)
@@ -276,7 +276,7 @@ RegisterNUICallback('previewSpawn', function(data, cb)
                 local camera, lookAt = cameraFor(location)
                 SetFocusPosAndVel(location.coords.x, location.coords.y, location.coords.z, 0.0, 0.0, 0.0)
                 createCamera(camera, lookAt, true)
-                TriggerEvent('cipher-multichar:client:spawnPreviewed', activeCharacter, location)
+                TriggerEvent('XS-MultiCharacter:client:spawnPreviewed', activeCharacter, location)
                 break
             end
         end
@@ -286,28 +286,28 @@ end)
 
 RegisterNUICallback('play', function(data, cb)
     SetNuiFocus(false, false)
-    TriggerServerEvent('cipher-multichar:server:load', data.citizenid)
+    TriggerServerEvent('XS-MultiCharacter:server:load', data.citizenid)
     cb('ok')
 end)
 
 RegisterNUICallback('create', function(data, cb)
     SetNuiFocus(false, false)
-    TriggerServerEvent('cipher-multichar:server:create', data)
+    TriggerServerEvent('XS-MultiCharacter:server:create', data)
     cb('ok')
 end)
 
 RegisterNUICallback('delete', function(data, cb)
-    TriggerServerEvent('cipher-multichar:server:delete', data.citizenid)
+    TriggerServerEvent('XS-MultiCharacter:server:delete', data.citizenid)
     cb('ok')
 end)
 
 RegisterNUICallback('spawn', function(data, cb)
-    TriggerServerEvent('cipher-multichar:server:selectSpawn', data.id)
+    TriggerServerEvent('XS-MultiCharacter:server:selectSpawn', data.id)
     cb('ok')
 end)
 
 RegisterNUICallback('adminSetSlots', function(data, cb)
-    TriggerServerEvent('cipher-multichar:server:adminSetSlots', data.license, data.slots, data.reset == true)
+    TriggerServerEvent('XS-MultiCharacter:server:adminSetSlots', data.license, data.slots, data.reset == true)
     cb('ok')
 end)
 

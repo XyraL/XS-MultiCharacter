@@ -5,12 +5,12 @@ local awaitingSpawn = {}
 local spawnConfirmation = {}
 local activeSessions = {}
 
-if not CipherValidation.print('server') then return end
+if not XSValidation.print('server') then return end
 
 local function accountIdentifiers(source)
     local license = GetPlayerIdentifierByType(source, 'license')
     local license2 = GetPlayerIdentifierByType(source, 'license2')
-    if CipherBridge.name == 'qbox' then
+    if XSBridge.name == 'qbox' then
         return license2 or license, license or license2
     end
     local primary = license or license2
@@ -57,7 +57,7 @@ local function allowedSlots(source)
     local config = Config.Server.Slots
     local amount = config.default
     local license, secondary = accountIdentifiers(source)
-    local storedOverride = CipherStorage.getSlotOverride(license) or CipherStorage.getSlotOverride(secondary)
+    local storedOverride = XSStorage.getSlotOverride(license) or XSStorage.getSlotOverride(secondary)
     if storedOverride then amount = tonumber(storedOverride) or amount end
     local configuredOverride = license and config.identifiers[license] or secondary and config.identifiers[secondary]
     if configuredOverride then amount = math.max(amount, tonumber(configuredOverride) or amount) end
@@ -157,7 +157,7 @@ local function commitSession(source)
     local session = activeSessions[source]
     if not session then return end
     activeSessions[source] = nil
-    CipherStorage.addPlaytime(session.citizenid, os.time() - session.startedAt)
+    XSStorage.addPlaytime(session.citizenid, os.time() - session.startedAt)
 end
 
 local function isAdmin(source)
@@ -179,7 +179,7 @@ local function adminPlayers()
                 name = GetPlayerName(source) or ('Player %s'):format(source),
                 license = license,
                 slots = allowedSlots(source),
-                override = CipherStorage.getSlotOverride(license),
+                override = XSStorage.getSlotOverride(license),
                 characters = characterCount(license, secondary)
             }
         end
@@ -190,19 +190,19 @@ end
 
 local function updateSlots(adminSource, license, amount)
     if type(license) ~= 'string' or not license:find('^license%d*:[%w]+') then return false end
-    if amount == nil then return CipherStorage.resetSlotOverride(license) end
+    if amount == nil then return XSStorage.resetSlotOverride(license) end
     amount = math.floor(tonumber(amount) or 0)
     if amount < 1 or amount > Config.Server.Slots.maximum or amount < characterCount(license) then return false end
-    return CipherStorage.setSlotOverride(license, amount, adminSource == 0 and 'console' or identifier(adminSource))
+    return XSStorage.setSlotOverride(license, amount, adminSource == 0 and 'console' or identifier(adminSource))
 end
 
 exports('GetAllowedSlots', allowedSlots)
 exports('GetSelectedCharacter', function(source)
-    local player = CipherBridge.getPlayer(source)
+    local player = XSBridge.getPlayer(source)
     return player and player.PlayerData or nil
 end)
 exports('CanUseSpawn', function(source, spawnId)
-    local player = CipherBridge.getPlayer(source)
+    local player = XSBridge.getPlayer(source)
     if not player then return false end
     if spawnId == 'last' then return Config.Spawn.allowLastLocation and player.PlayerData.position ~= nil end
     for _, location in ipairs(Config.Spawn.locations) do
@@ -216,11 +216,11 @@ exports('RegisterSpawnProvider', function(callback) return registerProvider(spaw
 exports('SetSlotOverride', function(license, slots, updatedBy)
     slots = math.floor(tonumber(slots) or 0)
     if type(license) ~= 'string' or slots < 1 or slots > Config.Server.Slots.maximum or slots < characterCount(license) then return false end
-    return CipherStorage.setSlotOverride(license, slots, updatedBy or GetInvokingResource() or 'export')
+    return XSStorage.setSlotOverride(license, slots, updatedBy or GetInvokingResource() or 'export')
 end)
 exports('ResetSlotOverride', function(license)
     if type(license) ~= 'string' then return false end
-    return CipherStorage.resetSlotOverride(license)
+    return XSStorage.resetSlotOverride(license)
 end)
 
 AddEventHandler('onResourceStop', function(resource)
@@ -243,7 +243,7 @@ AddEventHandler('QBCore:Server:OnPlayerUnload', function(source)
     commitSession(source)
 end)
 
-RegisterNetEvent('cipher-multichar:server:list', function()
+RegisterNetEvent('XS-MultiCharacter:server:list', function()
     local src = source
     if not ready(src, 'list', Config.Server.Security.requestCooldownMs) then return end
     local license, secondary = accountIdentifiers(src)
@@ -258,120 +258,120 @@ RegisterNetEvent('cipher-multichar:server:list', function()
         row.gang = decode(row.gang, {})
         row.position = decode(row.position, nil)
         row.metadata = decode(row.metadata, {})
-        row.activity = CipherStorage.getActivity(row.citizenid)
+        row.activity = XSStorage.getActivity(row.citizenid)
         row.dossier = dossierFor(src, row)
-        row.appearance = CipherServerAppearance.get(row.citizenid)
+        row.appearance = XSServerAppearance.get(row.citizenid)
         row.metadata = nil
         characters[#characters + 1] = row
     end
-    TriggerClientEvent('cipher-multichar:client:list', src, { characters = characters, slots = allowedSlots(src) })
+    TriggerClientEvent('XS-MultiCharacter:client:list', src, { characters = characters, slots = allowedSlots(src) })
 end)
 
-RegisterNetEvent('cipher-multichar:server:load', function(citizenid)
+RegisterNetEvent('XS-MultiCharacter:server:load', function(citizenid)
     local src = source
     if not ready(src, 'load', Config.Server.Security.requestCooldownMs) then return end
-    if CipherBridge.getPlayer(src) then return end
+    if XSBridge.getPlayer(src) then return end
     if not ownsCharacter(src, citizenid) then
         print(('[%s] %s tried to load a character they do not own.'):format(RESOURCE, src))
         return
     end
-    if CipherBridge.login(src, citizenid) then
-        local player = CipherBridge.getPlayer(src)
+    if XSBridge.login(src, citizenid) then
+        local player = XSBridge.getPlayer(src)
         if not player then return end
         local data = player.PlayerData
         awaitingSpawn[src] = true
-        CipherStorage.markSelected(citizenid)
+        XSStorage.markSelected(citizenid)
         activeSessions[src] = { citizenid = citizenid, startedAt = os.time() }
-        TriggerEvent('cipher-multichar:server:characterSelected', src, data)
-        TriggerClientEvent('cipher-multichar:client:loggedIn', src, citizenid, data.position, false, data, allowedSpawnIds(src, data))
+        TriggerEvent('XS-MultiCharacter:server:characterSelected', src, data)
+        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, citizenid, data.position, false, data, allowedSpawnIds(src, data))
     end
 end)
 
-RegisterNetEvent('cipher-multichar:server:create', function(data)
+RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
     local src = source
     if not ready(src, 'create', Config.Server.Security.createCooldownMs) or type(data) ~= 'table' then return end
-    if CipherBridge.getPlayer(src) then return end
+    if XSBridge.getPlayer(src) then return end
     local cid = math.floor(tonumber(data.cid) or 0)
     if cid < 1 or cid > allowedSlots(src) then return end
     local license, secondary = accountIdentifiers(src)
     local used = MySQL.scalar.await('SELECT 1 FROM players WHERE (license = ? OR license = ?) AND cid = ? LIMIT 1', { license, secondary, cid })
-    if used then return CipherBridge.notify(src, CipherLocale('slotUsed'), 'error') end
+    if used then return XSBridge.notify(src, XSLocale('slotUsed'), 'error') end
     local function clean(value)
         value = tostring(value or ''):gsub("[^%a%s%-']", ''):gsub('^%s+', ''):gsub('%s+$', '')
         return value:sub(1, Config.Characters.nameMaxLength)
     end
     local first, last = clean(data.firstname), clean(data.lastname)
     if #first < Config.Characters.nameMinLength or #last < Config.Characters.nameMinLength then
-        return CipherBridge.notify(src, CipherLocale('nameTooShort'), 'error')
+        return XSBridge.notify(src, XSLocale('nameTooShort'), 'error')
     end
     local newData = { cid = cid, charinfo = {
         firstname = first, lastname = last, birthdate = tostring(data.birthdate or ''),
         gender = tonumber(data.gender) == 1 and 1 or 0,
         nationality = tostring(data.nationality or Config.Characters.defaultNationality):sub(1, 24)
     }}
-    if CipherBridge.login(src, nil, newData) then
-        local player = CipherBridge.getPlayer(src)
+    if XSBridge.login(src, nil, newData) then
+        local player = XSBridge.getPlayer(src)
         if not player then return end
         local playerData = player.PlayerData
-        CipherStorage.ensureActivity(playerData.citizenid)
-        CipherStorage.markSelected(playerData.citizenid)
+        XSStorage.ensureActivity(playerData.citizenid)
+        XSStorage.markSelected(playerData.citizenid)
         activeSessions[src] = { citizenid = playerData.citizenid, startedAt = os.time() }
         if not Config.FirstCharacter.apartments.enabled then spawnConfirmation[src] = 'default' end
-        TriggerEvent('cipher-multichar:server:characterCreated', src, playerData)
-        TriggerClientEvent('cipher-multichar:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {})
+        TriggerEvent('XS-MultiCharacter:server:characterCreated', src, playerData)
+        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {})
     end
 end)
 
-RegisterNetEvent('cipher-multichar:server:delete', function(citizenid)
+RegisterNetEvent('XS-MultiCharacter:server:delete', function(citizenid)
     local src = source
     if not ready(src, 'delete', Config.Server.Security.deleteCooldownMs) then return end
-    if CipherBridge.getPlayer(src) then return end
+    if XSBridge.getPlayer(src) then return end
     if not Config.Characters.allowDelete or not ownsCharacter(src, citizenid) then return end
-    TriggerEvent('cipher-multichar:server:characterDeleting', src, citizenid)
-    CipherBridge.delete(src, citizenid)
-    CipherStorage.deleteActivity(citizenid)
-    TriggerEvent('cipher-multichar:server:characterDeleted', src, citizenid)
-    TriggerClientEvent('cipher-multichar:client:refresh', src)
+    TriggerEvent('XS-MultiCharacter:server:characterDeleting', src, citizenid)
+    XSBridge.delete(src, citizenid)
+    XSStorage.deleteActivity(citizenid)
+    TriggerEvent('XS-MultiCharacter:server:characterDeleted', src, citizenid)
+    TriggerClientEvent('XS-MultiCharacter:client:refresh', src)
 end)
 
-RegisterNetEvent('cipher-multichar:server:selectSpawn', function(spawnId)
+RegisterNetEvent('XS-MultiCharacter:server:selectSpawn', function(spawnId)
     local src = source
     if type(spawnId) ~= 'string' then return end
     if not awaitingSpawn[src] then return end
-    local player = CipherBridge.getPlayer(src)
+    local player = XSBridge.getPlayer(src)
     if not player then return end
     local data, coords, location = player.PlayerData
     if spawnId == 'last' and Config.Spawn.allowLastLocation and data.position then
         coords = data.position
-        location = { id = 'last', label = CipherLocale('lastLocation') }
+        location = { id = 'last', label = XSLocale('lastLocation') }
     else
         for _, configured in ipairs(Config.Spawn.locations) do
             if configured.id == spawnId then location = configured break end
         end
         if location and passesSpawnPermission(src, data, location) then coords = location.coords end
     end
-    if not coords then return CipherBridge.notify(src, CipherLocale('invalidSpawn'), 'error') end
+    if not coords then return XSBridge.notify(src, XSLocale('invalidSpawn'), 'error') end
     awaitingSpawn[src] = nil
     spawnConfirmation[src] = spawnId
-    TriggerClientEvent('cipher-multichar:client:spawnApproved', src, spawnId, coords)
+    TriggerClientEvent('XS-MultiCharacter:client:spawnApproved', src, spawnId, coords)
 end)
 
-RegisterNetEvent('cipher-multichar:server:spawned', function(spawnId)
+RegisterNetEvent('XS-MultiCharacter:server:spawned', function(spawnId)
     local src = source
     if spawnConfirmation[src] ~= spawnId then return end
     spawnConfirmation[src] = nil
-    local player = CipherBridge.getPlayer(src)
-    if player then TriggerEvent('cipher-multichar:server:characterSpawned', src, player.PlayerData, spawnId) end
+    local player = XSBridge.getPlayer(src)
+    if player then TriggerEvent('XS-MultiCharacter:server:characterSpawned', src, player.PlayerData, spawnId) end
 end)
 
 if Config.Server.Admin.enabled then
 RegisterCommand(Config.Server.Admin.command, function(source, args)
     if not isAdmin(source) then
-        if source > 0 then CipherBridge.notify(source, CipherLocale('adminDenied'), 'error') end
+        if source > 0 then XSBridge.notify(source, XSLocale('adminDenied'), 'error') end
         return
     end
     if source > 0 and not args[1] then
-        TriggerClientEvent('cipher-multichar:client:adminOpen', source)
+        TriggerClientEvent('XS-MultiCharacter:client:adminOpen', source)
         return
     end
     local target = tonumber(args[1])
@@ -386,21 +386,21 @@ RegisterCommand(Config.Server.Admin.command, function(source, args)
     if reset then updated = updateSlots(source, targetLicense, nil)
     elseif amount then updated = updateSlots(source, targetLicense, amount) end
     if updated then
-        local message = reset and CipherLocale('adminResetDone') or CipherLocale('adminUpdated')
-        if source > 0 then CipherBridge.notify(source, message, 'success') else print(('[%s] %s'):format(RESOURCE, message)) end
+        local message = reset and XSLocale('adminResetDone') or XSLocale('adminUpdated')
+        if source > 0 then XSBridge.notify(source, message, 'success') else print(('[%s] %s'):format(RESOURCE, message)) end
     elseif source > 0 then
-        CipherBridge.notify(source, CipherLocale('adminInvalidSlots', { maximum = Config.Server.Slots.maximum }), 'error')
+        XSBridge.notify(source, XSLocale('adminInvalidSlots', { maximum = Config.Server.Slots.maximum }), 'error')
     end
 end, false)
 end
 
-RegisterNetEvent('cipher-multichar:server:adminList', function()
+RegisterNetEvent('XS-MultiCharacter:server:adminList', function()
     local src = source
     if not isAdmin(src) or not ready(src, 'adminList', Config.Server.Security.requestCooldownMs) then return end
-    TriggerClientEvent('cipher-multichar:client:adminData', src, { players = adminPlayers(), maximum = Config.Server.Slots.maximum })
+    TriggerClientEvent('XS-MultiCharacter:client:adminData', src, { players = adminPlayers(), maximum = Config.Server.Slots.maximum })
 end)
 
-RegisterNetEvent('cipher-multichar:server:adminSetSlots', function(license, amount, reset)
+RegisterNetEvent('XS-MultiCharacter:server:adminSetSlots', function(license, amount, reset)
     local src = source
     if not isAdmin(src) or not ready(src, 'adminSet', Config.Server.Security.requestCooldownMs) then return end
     local value = tonumber(amount)
@@ -408,9 +408,9 @@ RegisterNetEvent('cipher-multichar:server:adminSetSlots', function(license, amou
     if reset == true then updated = updateSlots(src, license, nil)
     elseif value then updated = updateSlots(src, license, value) end
     if updated then
-        CipherBridge.notify(src, reset and CipherLocale('adminResetDone') or CipherLocale('adminUpdated'), 'success')
+        XSBridge.notify(src, reset and XSLocale('adminResetDone') or XSLocale('adminUpdated'), 'success')
     else
-        CipherBridge.notify(src, CipherLocale('adminInvalidSlots', { maximum = Config.Server.Slots.maximum }), 'error')
+        XSBridge.notify(src, XSLocale('adminInvalidSlots', { maximum = Config.Server.Slots.maximum }), 'error')
     end
-    TriggerClientEvent('cipher-multichar:client:adminData', src, { players = adminPlayers(), maximum = Config.Server.Slots.maximum })
+    TriggerClientEvent('XS-MultiCharacter:client:adminData', src, { players = adminPlayers(), maximum = Config.Server.Slots.maximum })
 end)

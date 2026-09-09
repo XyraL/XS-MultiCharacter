@@ -1,4 +1,4 @@
-CipherWeather = {}
+XSWeather = {}
 
 local activeMode
 
@@ -15,7 +15,7 @@ local function mode()
     return 'native'
 end
 
-function CipherWeather.enterScene()
+function XSWeather.enterScene()
     activeMode = mode()
     if activeMode == 'qb-weathersync' then TriggerEvent('qb-weathersync:client:DisableSync')
     elseif activeMode == 'qbx' then TriggerEvent('qbx_weathersync:client:disableSync')
@@ -26,7 +26,7 @@ function CipherWeather.enterScene()
     end
 end
 
-function CipherWeather.leaveScene()
+function XSWeather.leaveScene()
     if activeMode == 'qb-weathersync' then TriggerEvent('qb-weathersync:client:EnableSync')
     elseif activeMode == 'qbx' then TriggerEvent('qbx_weathersync:client:enableSync')
     elseif activeMode == 'cd_easytime' then TriggerEvent('cd_easytime:PauseSync', false) end

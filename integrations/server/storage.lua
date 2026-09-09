@@ -1,10 +1,10 @@
-CipherStorage = {}
+XSStorage = {}
 
 local ready = false
 local slotOverrides = {}
 
 local activityTable = [[
-    CREATE TABLE IF NOT EXISTS `cipher_multichar_activity` (
+    CREATE TABLE IF NOT EXISTS `xs_multichar_activity` (
         `citizenid` VARCHAR(64) NOT NULL,
         `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `last_played` TIMESTAMP NULL DEFAULT NULL,
@@ -14,7 +14,7 @@ local activityTable = [[
 ]]
 
 local slotsTable = [[
-    CREATE TABLE IF NOT EXISTS `cipher_multichar_slots` (
+    CREATE TABLE IF NOT EXISTS `xs_multichar_slots` (
         `license` VARCHAR(64) NOT NULL,
         `slots` TINYINT UNSIGNED NOT NULL,
         `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -24,7 +24,7 @@ local slotsTable = [[
 ]]
 
 local function warn(message)
-    print(('^3[Cipher-MultiCharacter] Storage warning:^0 %s'):format(message))
+    print(('^3[XS-MultiCharacter] Storage warning:^0 %s'):format(message))
 end
 
 MySQL.ready(function()
@@ -34,30 +34,30 @@ MySQL.ready(function()
         if not activityOk then warn(activityError) end
         if not slotsOk then warn(slotsError) end
     end
-    local ok, rows = pcall(MySQL.query.await, 'SELECT license, slots FROM cipher_multichar_slots')
+    local ok, rows = pcall(MySQL.query.await, 'SELECT license, slots FROM xs_multichar_slots')
     if ok then
         for _, row in ipairs(rows) do slotOverrides[row.license] = tonumber(row.slots) end
     else
-        warn('Could not load slot overrides. Import sql/cipher_multichar.sql or enable automatic table creation.')
+        warn('Could not load slot overrides. Import sql/xs_multichar.sql or enable automatic table creation.')
     end
     ready = true
 end)
 
-function CipherStorage.awaitReady()
+function XSStorage.awaitReady()
     local deadline = GetGameTimer() + 10000
     while not ready and GetGameTimer() < deadline do Wait(50) end
     return ready
 end
 
-function CipherStorage.getSlotOverride(license)
-    CipherStorage.awaitReady()
+function XSStorage.getSlotOverride(license)
+    XSStorage.awaitReady()
     return license and slotOverrides[license] or nil
 end
 
-function CipherStorage.setSlotOverride(license, slots, updatedBy)
-    if not CipherStorage.awaitReady() then return false end
+function XSStorage.setSlotOverride(license, slots, updatedBy)
+    if not XSStorage.awaitReady() then return false end
     local ok = pcall(MySQL.prepare.await, [[
-        INSERT INTO cipher_multichar_slots (license, slots, updated_by)
+        INSERT INTO xs_multichar_slots (license, slots, updated_by)
         VALUES (?, ?, ?)
         ON DUPLICATE KEY UPDATE slots = VALUES(slots), updated_by = VALUES(updated_by)
     ]], { license, slots, updatedBy })
@@ -65,26 +65,26 @@ function CipherStorage.setSlotOverride(license, slots, updatedBy)
     return ok
 end
 
-function CipherStorage.resetSlotOverride(license)
-    if not CipherStorage.awaitReady() then return false end
-    local ok = pcall(MySQL.update.await, 'DELETE FROM cipher_multichar_slots WHERE license = ?', { license })
+function XSStorage.resetSlotOverride(license)
+    if not XSStorage.awaitReady() then return false end
+    local ok = pcall(MySQL.update.await, 'DELETE FROM xs_multichar_slots WHERE license = ?', { license })
     if ok then slotOverrides[license] = nil end
     return ok
 end
 
-function CipherStorage.ensureActivity(citizenid)
-    if not Config.Server.Activity.enabled or not CipherStorage.awaitReady() then return false end
-    return pcall(MySQL.insert.await, 'INSERT IGNORE INTO cipher_multichar_activity (citizenid) VALUES (?)', { citizenid })
+function XSStorage.ensureActivity(citizenid)
+    if not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return false end
+    return pcall(MySQL.insert.await, 'INSERT IGNORE INTO xs_multichar_activity (citizenid) VALUES (?)', { citizenid })
 end
 
-function CipherStorage.getActivity(citizenid)
-    if not Config.Server.Activity.enabled or not CipherStorage.awaitReady() then return nil end
-    CipherStorage.ensureActivity(citizenid)
+function XSStorage.getActivity(citizenid)
+    if not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return nil end
+    XSStorage.ensureActivity(citizenid)
     local ok, row = pcall(MySQL.single.await, [[
         SELECT UNIX_TIMESTAMP(created_at) AS createdAt,
                UNIX_TIMESTAMP(last_played) AS lastPlayed,
                playtime_seconds AS playtimeSeconds
-        FROM cipher_multichar_activity WHERE citizenid = ? LIMIT 1
+        FROM xs_multichar_activity WHERE citizenid = ? LIMIT 1
     ]], { citizenid })
     if not ok or not row then return nil end
     return {
@@ -94,22 +94,22 @@ function CipherStorage.getActivity(citizenid)
     }
 end
 
-function CipherStorage.markSelected(citizenid)
-    if not Config.Server.Activity.enabled or not CipherStorage.awaitReady() then return end
-    CipherStorage.ensureActivity(citizenid)
+function XSStorage.markSelected(citizenid)
+    if not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return end
+    XSStorage.ensureActivity(citizenid)
     if Config.Server.Activity.updateLastPlayedOnSelect then
-        pcall(MySQL.update.await, 'UPDATE cipher_multichar_activity SET last_played = CURRENT_TIMESTAMP WHERE citizenid = ?', { citizenid })
+        pcall(MySQL.update.await, 'UPDATE xs_multichar_activity SET last_played = CURRENT_TIMESTAMP WHERE citizenid = ?', { citizenid })
     end
 end
 
-function CipherStorage.addPlaytime(citizenid, seconds)
+function XSStorage.addPlaytime(citizenid, seconds)
     seconds = math.max(math.floor(tonumber(seconds) or 0), 0)
-    if seconds == 0 or not Config.Server.Activity.enabled or not CipherStorage.awaitReady() then return end
-    CipherStorage.ensureActivity(citizenid)
-    pcall(MySQL.update.await, 'UPDATE cipher_multichar_activity SET playtime_seconds = playtime_seconds + ? WHERE citizenid = ?', { seconds, citizenid })
+    if seconds == 0 or not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return end
+    XSStorage.ensureActivity(citizenid)
+    pcall(MySQL.update.await, 'UPDATE xs_multichar_activity SET playtime_seconds = playtime_seconds + ? WHERE citizenid = ?', { seconds, citizenid })
 end
 
-function CipherStorage.deleteActivity(citizenid)
-    if not Config.Server.Activity.enabled or not CipherStorage.awaitReady() then return end
-    pcall(MySQL.update.await, 'DELETE FROM cipher_multichar_activity WHERE citizenid = ?', { citizenid })
+function XSStorage.deleteActivity(citizenid)
+    if not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return end
+    pcall(MySQL.update.await, 'DELETE FROM xs_multichar_activity WHERE citizenid = ?', { citizenid })
 end

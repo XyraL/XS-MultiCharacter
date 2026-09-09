@@ -61,7 +61,7 @@ Config.Client.Integrations = {
 }
 
 Config.Client.UI = {
-    title = 'CIPHER',
+    title = 'XYRAL',
     subtitle = 'IDENTITY NETWORK',
     accent = '#8b5cf6',
     background = '#090a0f',

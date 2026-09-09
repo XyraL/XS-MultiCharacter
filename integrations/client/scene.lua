@@ -1,9 +1,9 @@
-CipherSceneEffects = {}
+XSSceneEffects = {}
 
 local orbitToken = 0
 local effectsActive = false
 
-function CipherSceneEffects.enter()
+function XSSceneEffects.enter()
     effectsActive = true
     local config = Config.Client.SceneEffects
     if config.timecycle then
@@ -18,7 +18,7 @@ function CipherSceneEffects.enter()
     end)
 end
 
-function CipherSceneEffects.applyCamera(camera)
+function XSSceneEffects.applyCamera(camera)
     local depth = Config.Client.SceneEffects.depthOfField
     if not depth.enabled then return end
     SetCamUseShallowDofMode(camera, true)
@@ -27,12 +27,12 @@ function CipherSceneEffects.applyCamera(camera)
     SetCamDofStrength(camera, depth.strength)
 end
 
-function CipherSceneEffects.stopOrbit()
+function XSSceneEffects.stopOrbit()
     orbitToken = orbitToken + 1
 end
 
-function CipherSceneEffects.startOrbit(camera, origin, lookAt)
-    CipherSceneEffects.stopOrbit()
+function XSSceneEffects.startOrbit(camera, origin, lookAt)
+    XSSceneEffects.stopOrbit()
     local orbit = Config.Client.SceneEffects.orbit
     if not orbit.enabled then return end
     local token = orbitToken
@@ -54,8 +54,8 @@ function CipherSceneEffects.startOrbit(camera, origin, lookAt)
     end)
 end
 
-function CipherSceneEffects.leave()
+function XSSceneEffects.leave()
     effectsActive = false
-    CipherSceneEffects.stopOrbit()
+    XSSceneEffects.stopOrbit()
     ClearTimecycleModifier()
 end

@@ -1,4 +1,4 @@
-CipherValidation = {}
+XSValidation = {}
 
 local allowedFrameworks = { auto = true, qbox = true, qbcore = true }
 local allowedAppearance = { auto = true, ['illenium-appearance'] = true, ['fivem-appearance'] = true, ['qb-clothing'] = true, none = true }
@@ -7,7 +7,7 @@ local function add(errors, condition, message)
     if not condition then errors[#errors + 1] = message end
 end
 
-function CipherValidation.run(side)
+function XSValidation.run(side)
     local errors, warnings, ids, categoryIds = {}, {}, {}, {}
     add(errors, allowedFrameworks[Config.Framework], 'Config.Framework must be auto, qbox, or qbcore.')
     add(errors, Locales[Config.Locale] ~= nil, ('Locale "%s" does not exist in locales/.'):format(Config.Locale))
@@ -74,10 +74,10 @@ function CipherValidation.run(side)
     return #errors == 0, errors, warnings
 end
 
-function CipherValidation.print(side)
-    local valid, errors, warnings = CipherValidation.run(side)
-    for _, message in ipairs(warnings) do print(('^3[Cipher-MultiCharacter] WARNING:^0 %s'):format(message)) end
-    for _, message in ipairs(errors) do print(('^1[Cipher-MultiCharacter] CONFIG ERROR:^0 %s'):format(message)) end
-    if valid and (side == 'server' or Config.Debug) then print(('^2[Cipher-MultiCharacter]^0 %s config checked successfully.'):format(side)) end
+function XSValidation.print(side)
+    local valid, errors, warnings = XSValidation.run(side)
+    for _, message in ipairs(warnings) do print(('^3[XS-MultiCharacter] WARNING:^0 %s'):format(message)) end
+    for _, message in ipairs(errors) do print(('^1[XS-MultiCharacter] CONFIG ERROR:^0 %s'):format(message)) end
+    if valid and (side == 'server' or Config.Debug) then print(('^2[XS-MultiCharacter]^0 %s config checked successfully.'):format(side)) end
     return valid
 end

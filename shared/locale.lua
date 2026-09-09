@@ -6,11 +6,11 @@ local function replaceTokens(value, replacements)
     return value
 end
 
-function CipherLocale(key, replacements)
+function XSLocale(key, replacements)
     local selected = Locales[Config.Locale] or Locales.en or {}
     return replaceTokens(selected[key] or ('<' .. key .. '>'), replacements)
 end
 
-function CipherLocaleTable()
+function XSLocaleTable()
     return Locales[Config.Locale] or Locales.en or {}
 end

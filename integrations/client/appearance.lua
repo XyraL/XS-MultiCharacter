@@ -1,10 +1,10 @@
-CipherAppearance = {}
+XSAppearance = {}
 
 local function running(resource)
     return GetResourceState(resource):find('start') ~= nil
 end
 
-function CipherAppearance.mode()
+function XSAppearance.mode()
     local mode = Config.Client.Integrations.appearance
     if mode ~= 'auto' then return mode end
     if running('illenium-appearance') then return 'illenium-appearance' end
@@ -13,7 +13,7 @@ function CipherAppearance.mode()
     return 'none'
 end
 
-function CipherAppearance.model(saved, gender)
+function XSAppearance.model(saved, gender)
     local model = saved and saved.model
     if type(model) == 'string' and tonumber(model) then model = tonumber(model) end
     if type(model) == 'string' then model = joaat(model) end
@@ -23,9 +23,9 @@ function CipherAppearance.model(saved, gender)
     return model
 end
 
-function CipherAppearance.apply(ped, saved)
+function XSAppearance.apply(ped, saved)
     if not saved or not saved.appearance then return false end
-    local mode = CipherAppearance.mode()
+    local mode = XSAppearance.mode()
     if mode == 'illenium-appearance' then
         return pcall(function() exports['illenium-appearance']:setPedAppearance(ped, saved.appearance) end)
     elseif mode == 'fivem-appearance' then
@@ -37,9 +37,9 @@ function CipherAppearance.apply(ped, saved)
     return false
 end
 
-function CipherAppearance.openFirstCharacter()
+function XSAppearance.openFirstCharacter()
     local mode = Config.FirstCharacter.clothing.mode
-    if mode == 'auto' then mode = CipherAppearance.mode() end
+    if mode == 'auto' then mode = XSAppearance.mode() end
     if mode == 'illenium-appearance' then TriggerEvent('illenium-appearance:client:openClothingShopMenu', true)
     elseif mode == 'fivem-appearance' then TriggerEvent('fivem-appearance:client:openClothingShopMenu', true)
     elseif mode == 'qb-clothing' then TriggerEvent('qb-clothes:client:CreateFirstCharacter')

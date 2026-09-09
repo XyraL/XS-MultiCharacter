@@ -96,6 +96,6 @@ Config.Spawn = {
         },
         -- Example restricted spawn:
         -- { id = 'pd', category = 'restricted', label = 'Mission Row PD', coords = vec4(...), camera = vec3(...),
-        --   lookAt = vec3(...), permission = { jobs = { police = 0 }, ace = 'cipher.spawn.pd' } }
+        --   lookAt = vec3(...), permission = { jobs = { police = 0 }, ace = 'xs.spawn.pd' } }
     }
 }

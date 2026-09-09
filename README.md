@@ -1,22 +1,22 @@
-<h1 align="center">Cipher MultiCharacter</h1>
+<h1 align="center">XS-MultiCharacter</h1>
 
 <p align="center">A cinematic identity, character selection, and spawn flow for <strong>QBox</strong> and <strong>QBCore</strong>.</p>
 
 <p align="center">
-  <a href="https://github.com/XyraL/cipher-multicharacter/releases"><img src="https://img.shields.io/github/v/release/XyraL/cipher-multicharacter?style=flat-square&color=ff7ad9&label=release" alt="Latest release"></a>
+  <a href="https://github.com/XyraL/XS-MultiCharacter/releases"><img src="https://img.shields.io/github/v/release/XyraL/XS-MultiCharacter?style=flat-square&color=ff7ad9&label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/framework-QBox%20%7C%20QBCore-55dcff?style=flat-square" alt="framework">
   <img src="https://img.shields.io/badge/price-free-30d158?style=flat-square" alt="price">
   <a href="https://discord.gg/XRURAw4TM2"><img src="https://img.shields.io/badge/support-discord-5865F2?style=flat-square" alt="support"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/XyraL/cipher-multicharacter/releases">Releases</a> &nbsp;·&nbsp;
+  <a href="https://github.com/XyraL/XS-MultiCharacter/releases">Releases</a> &nbsp;·&nbsp;
   <a href="https://discord.gg/XRURAw4TM2">Support</a>
 </p>
 
 ---
 
-Cipher MultiCharacter treats character selection as an identity system instead of a row of save slots while remaining straightforward to install.
+XS-MultiCharacter treats character selection as an identity system instead of a row of save slots while remaining straightforward to install.
 
 The character screen loads the player's saved appearance, gives each character a proper dossier, and puts the preview ped into an animation that can change with their job. The spawn screen uses actual map cameras instead of showing another flat menu.
 
@@ -25,7 +25,7 @@ The character screen loads the player's saved appearance, gives each character a
 - Qbox and QBCore support
 - Saved appearance previews for illenium-appearance, fivem-appearance, and qb-clothing
 - Character animations with job-specific presets
-- Cipher identity dossier with support for fields from other resources
+- Identity dossier with support for fields from other resources
 - Cinematic spawn cameras
 - Last location support
 - Per-character spawn permissions
@@ -48,9 +48,9 @@ The character screen loads the player's saved appearance, gives each character a
 
 ## Install
 
-1. Put `Cipher-MultiCharacter` in your resources folder.
+1. Put `XS-MultiCharacter` in your resources folder.
 2. Start it after the framework, oxmysql, appearance, and apartment resources.
-3. Add `ensure Cipher-MultiCharacter` to `server.cfg`.
+3. Add `ensure XS-MultiCharacter` to `server.cfg`.
 4. Disable the multicharacter resource that came with the framework.
 5. Check the three files in `config/` before starting the server.
 
@@ -62,7 +62,7 @@ useExternalCharacters = true
 
 QBCore servers should stop or remove `qb-multicharacter`. Do not run two character selectors together.
 
-Cipher creates its two small tables automatically by default. If you turn automatic table creation off, import `sql/cipher_multichar.sql` yourself.
+It creates its two small tables automatically by default. If you turn automatic table creation off, import `sql/xs_multichar.sql` yourself.
 
 ## Where everything is
 
@@ -91,11 +91,11 @@ Empty categories are hidden automatically. Last location has its own configurabl
 
 ## Character activity
 
-Cipher tracks:
+It tracks:
 
 - Previous character selection time
 - Total session playtime
-- The date Cipher started tracking the character
+- The date it started tracking the character
 - Last saved district, calculated from the framework position
 
 Playtime is written when the player unloads, disconnects, or the resource stops. It does not run a repeating save query. Existing characters begin tracking the first time they appear in the selector after this update.
@@ -111,7 +111,7 @@ Turn activity off in `Config.Server.Activity`, or hide it without disabling coll
 Give staff the configured ACE:
 
 ```cfg
-add_ace group.admin cipher.multichar.admin allow
+add_ace group.admin xs.multichar.admin allow
 ```
 
 Then use `/charslots` in game to open the manager. It shows online players, current character count, effective slots, and persistent overrides.
@@ -132,8 +132,8 @@ The default and maximum slot count are in `config/server.lua`.
 ACE rules use the highest value a player has:
 
 ```cfg
-add_ace group.supporter cipher.slots.6 allow
-add_ace group.vip cipher.slots.8 allow
+add_ace group.supporter xs.slots.6 allow
+add_ace group.vip xs.slots.8 allow
 ```
 
 You can also give one license a fixed override:
@@ -147,7 +147,7 @@ identifiers = {
 Another resource can provide a slot count at runtime:
 
 ```lua
-exports['Cipher-MultiCharacter']:RegisterSlotProvider(function(source, currentSlots)
+exports['XS-MultiCharacter']:RegisterSlotProvider(function(source, currentSlots)
     if IsPlayerAceAllowed(source, 'myserver.founder') then
         return 10
     end
@@ -177,7 +177,7 @@ Add a permission table to restrict it:
 ```lua
 permission = {
     jobs = { police = 0, ambulance = 2 },
-    ace = 'cipher.spawn.pillbox'
+    ace = 'xs.spawn.pillbox'
 }
 ```
 
@@ -188,7 +188,7 @@ The server checks the permission again when a spawn is picked. Hiding a button i
 For more custom logic:
 
 ```lua
-exports['Cipher-MultiCharacter']:RegisterSpawnProvider(function(source, playerData, location)
+exports['XS-MultiCharacter']:RegisterSpawnProvider(function(source, playerData, location)
     if location.id == 'event_hub' then
         return GlobalState.eventOpen == true
     end
@@ -235,10 +235,10 @@ metadataFields = {
 }
 ```
 
-Other resources can add calculated information without editing Cipher:
+Other resources can add calculated information without editing this resource:
 
 ```lua
-exports['Cipher-MultiCharacter']:RegisterDossierProvider(function(source, citizenid, playerRow, dossier)
+exports['XS-MultiCharacter']:RegisterDossierProvider(function(source, citizenid, playerRow, dossier)
     return {
         { label = 'Reputation', value = 'Trusted' },
         { label = 'Crew', value = 'Southside Customs' }
@@ -251,21 +251,21 @@ end)
 Server:
 
 ```lua
-exports['Cipher-MultiCharacter']:GetAllowedSlots(source)
-exports['Cipher-MultiCharacter']:GetSelectedCharacter(source)
-exports['Cipher-MultiCharacter']:CanUseSpawn(source, spawnId)
-exports['Cipher-MultiCharacter']:RegisterSlotProvider(callback)
-exports['Cipher-MultiCharacter']:RegisterDossierProvider(callback)
-exports['Cipher-MultiCharacter']:RegisterSpawnProvider(callback)
-exports['Cipher-MultiCharacter']:SetSlotOverride(license, slots, updatedBy)
-exports['Cipher-MultiCharacter']:ResetSlotOverride(license)
+exports['XS-MultiCharacter']:GetAllowedSlots(source)
+exports['XS-MultiCharacter']:GetSelectedCharacter(source)
+exports['XS-MultiCharacter']:CanUseSpawn(source, spawnId)
+exports['XS-MultiCharacter']:RegisterSlotProvider(callback)
+exports['XS-MultiCharacter']:RegisterDossierProvider(callback)
+exports['XS-MultiCharacter']:RegisterSpawnProvider(callback)
+exports['XS-MultiCharacter']:SetSlotOverride(license, slots, updatedBy)
+exports['XS-MultiCharacter']:ResetSlotOverride(license)
 ```
 
 Client:
 
 ```lua
-exports['Cipher-MultiCharacter']:GetSelectedCharacter()
-exports['Cipher-MultiCharacter']:IsSelectingCharacter()
+exports['XS-MultiCharacter']:GetSelectedCharacter()
+exports['XS-MultiCharacter']:IsSelectingCharacter()
 ```
 
 ## Events
@@ -273,20 +273,20 @@ exports['Cipher-MultiCharacter']:IsSelectingCharacter()
 Server-side lifecycle events:
 
 ```lua
-cipher-multichar:server:characterSelected -- source, playerData
-cipher-multichar:server:characterCreated  -- source, playerData
-cipher-multichar:server:characterDeleting -- source, citizenid
-cipher-multichar:server:characterDeleted  -- source, citizenid
-cipher-multichar:server:characterSpawned  -- source, playerData, spawnId
+XS-MultiCharacter:server:characterSelected -- source, playerData
+XS-MultiCharacter:server:characterCreated  -- source, playerData
+XS-MultiCharacter:server:characterDeleting -- source, citizenid
+XS-MultiCharacter:server:characterDeleted  -- source, citizenid
+XS-MultiCharacter:server:characterSpawned  -- source, playerData, spawnId
 ```
 
 Client-side lifecycle events:
 
 ```lua
-cipher-multichar:client:characterPreviewed -- character, previewPed
-cipher-multichar:client:characterSelected  -- citizenid, isNew, playerData
-cipher-multichar:client:spawnPreviewed     -- citizenid, location
-cipher-multichar:client:characterSpawned   -- citizenid, spawnId, coords
+XS-MultiCharacter:client:characterPreviewed -- character, previewPed
+XS-MultiCharacter:client:characterSelected  -- citizenid, isNew, playerData
+XS-MultiCharacter:client:spawnPreviewed     -- citizenid, location
+XS-MultiCharacter:client:characterSpawned   -- citizenid, spawnId, coords
 ```
 
 These are local lifecycle events for integrations. The resource does not expose an event or command that logs a player out and reopens character selection.
@@ -299,9 +299,9 @@ The default flow is:
 Identity -> Apartment -> Clothing
 ```
 
-The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so Cipher leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.
+The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so it leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.
 
-If you use a custom apartment event that does not open clothing, set `Config.FirstCharacter.apartments.opensClothingAfterSelection` to `false`. Cipher will use the clothing-first fallback and watch the events in `Config.FirstCharacter.clothing.finishedEvents` before opening your apartment event.
+If you use a custom apartment event that does not open clothing, set `Config.FirstCharacter.apartments.opensClothingAfterSelection` to `false`. It will use the clothing-first fallback and watch the events in `Config.FirstCharacter.clothing.finishedEvents` before opening your apartment event.
 
 ## Before going live
 
@@ -309,31 +309,31 @@ If you use a custom apartment event that does not open clothing, set `Config.Fir
 - Test one existing male and female character to confirm the saved appearance query matches your table.
 - Check every camera location for interiors or map assets that only your server loads.
 - Keep spawn IDs unique.
-- Grant `cipher.multichar.admin` only to staff who should manage persistent slot limits.
+- Grant `xs.multichar.admin` only to staff who should manage persistent slot limits.
 - Do not start the old multicharacter resource beside this one.
 
 ## Documentation
 
 Full setup guide, requirements and troubleshooting:
-**[xyralscripts.dev/docs-cipher-multicharacter](https://xyralscripts.dev/docs-cipher-multicharacter)**
+**[xyralscripts.dev/docs-xs-multicharacter](https://xyralscripts.dev/docs-xs-multicharacter)**
 
 ## Support
 
-- **Found a bug?** [Open an issue](https://github.com/XyraL/cipher-multicharacter/issues)
+- **Found a bug?** [Open an issue](https://github.com/XyraL/XS-MultiCharacter/issues)
 - **Need setup help?** [Join the Discord](https://discord.gg/XRURAw4TM2) — check the setup guide first, it usually has the answer
 
-## The rest of the Cipher line
+## My other scripts
 
 All free, all source-available.
 
 | Script | What it is |
 |---|---|
-| **[Cipher](https://github.com/XyraL/cipher)** | modular criminal device for QBox and QBCore — gang ops, blackmarket and boosting in one encrypted tablet. |
-| **[Cipher MDT](https://github.com/XyraL/cipher-mdt)** | multi-department MDT for QBox — police, EMS and fire with live CAD, records, patient care and a live unit map. |
-| **[Cipher Admin](https://github.com/XyraL/cipher-admin)** | advanced admin suite for QBox and QBCore — player management, bans, reports, inventory tools and entity inspection. |
-| **[Cipher Drone](https://github.com/XyraL/cipher-drone)** | deployable police drone for QBox and QBCore — smooth flight, thermal, spotlight, tracker darts and real counterplay. |
-| **[Cipher Trucking](https://github.com/XyraL/cipher-trucking)** | civilian trucking job for QBox and QBCore — live route map, truck ownership, fuel and maintenance, and companies. |
-| **[Cipher Dispatch](https://github.com/XyraL/cipher-dispatch)** | multi-department live dispatch for QBox and QBCore — responder tracking, priority calls, TAC radio and provider integrations. |
+| **[XS-CriminalTablet](https://github.com/XyraL/XS-CriminalTablet)** | modular criminal device for QBox and QBCore — gang ops, blackmarket and boosting in one encrypted tablet. |
+| **[XS-MDT](https://github.com/XyraL/XS-MDT)** | multi-department MDT for QBox — police, EMS and fire with live CAD, records, patient care and a live unit map. |
+| **[XS-AdminMenu](https://github.com/XyraL/XS-AdminMenu)** | advanced admin suite for QBox and QBCore — player management, bans, reports, inventory tools and entity inspection. |
+| **[XS-Drone](https://github.com/XyraL/XS-Drone)** | deployable police drone for QBox and QBCore — smooth flight, thermal, spotlight, tracker darts and real counterplay. |
+| **[XS-Trucking](https://github.com/XyraL/XS-Trucking)** | civilian trucking job for QBox and QBCore — live route map, truck ownership, fuel and maintenance, and companies. |
+| **[XS-Dispatch](https://github.com/XyraL/XS-Dispatch)** | multi-department live dispatch for QBox and QBCore — responder tracking, priority calls, TAC radio and provider integrations. |
 
 ## License
 
