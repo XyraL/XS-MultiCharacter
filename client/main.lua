@@ -120,6 +120,13 @@ local function openCharacters()
     TriggerServerEvent('XS-MultiCharacter:server:list')
 end
 
+local function savedAppearance()
+    for _, character in ipairs(characters) do
+        if character.citizenid == activeCharacter then return character.appearance end
+    end
+    return nil
+end
+
 local function spawnAt(coords, spawnId)
     coords = coords or Config.Spawn.default
     fadeOut()
@@ -134,6 +141,7 @@ local function spawnAt(coords, spawnId)
     while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < deadline do Wait(0) end
     XSBridge.clearInside()
     XSBridge.playerLoaded()
+    XSPed.begin(savedAppearance())
     DoScreenFadeIn(700)
     TriggerEvent('XS-MultiCharacter:client:characterSpawned', activeCharacter, spawnId, coords)
     TriggerServerEvent('XS-MultiCharacter:server:spawned', spawnId)
@@ -261,6 +269,7 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
         if Config.FirstCharacter.apartments.enabled
             and Config.FirstCharacter.apartments.opensClothingAfterSelection ~= false
             and XSBridge.openApartments(activeCharacterData or activeCharacter) then
+            XSPed.begin(nil)
             return
         end
 

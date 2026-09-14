@@ -45,6 +45,33 @@ Config.Client.Animation = {
     }
 }
 
+Config.Client.PedPersistence = {
+    enabled = true,
+
+    -- There is no ped picker anywhere in this resource. This only remembers the
+    -- model a character is already wearing, so a ped set by an admin or another
+    -- resource comes back on the next login and shows on the character screen.
+    saveOutfit = true, -- also remember the ped's components and props
+
+    -- Treated as the normal character rather than a ped. A character sitting on
+    -- one of these clears its saved ped and goes back to its saved clothing.
+    ignoredModels = {
+        `mp_m_freemode_01`,
+        `mp_f_freemode_01`
+    },
+
+    checkIntervalMs = 1000,
+    confirmChecks = 2, -- matching checks in a row before the model is saved
+
+    -- The clothing resource loads the saved skin right after spawning, so the
+    -- ped is applied after that and held for a moment in case it loads late.
+    restoreDelayMs = 1200,
+    holdSeconds = 6,
+
+    -- How long after spawning to start watching the model.
+    graceMs = 5000
+}
+
 Config.Client.CinematicSpawn = {
     enabled = true,
     transitionMs = 850,

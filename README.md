@@ -24,6 +24,7 @@ The character screen loads the player's saved appearance, gives each character a
 
 - Qbox and QBCore support
 - Saved appearance previews for illenium-appearance, fivem-appearance, and qb-clothing
+- Remembers a ped a character was put in, without adding a ped picker
 - Character animations with job-specific presets
 - Identity dossier with support for fields from other resources
 - Cinematic spawn cameras
@@ -62,7 +63,7 @@ useExternalCharacters = true
 
 QBCore servers should stop or remove `qb-multicharacter`. Do not run two character selectors together.
 
-It creates its two small tables automatically by default. If you turn automatic table creation off, import `sql/xs_multichar.sql` yourself.
+It creates its three small tables automatically by default. If you turn automatic table creation off, import `sql/xs_multichar.sql` yourself.
 
 ## Where everything is
 
@@ -208,6 +209,25 @@ playerskins: id, citizenid, model, skin, active
 If your appearance resource renamed its table or columns, change `Config.Server.Appearance`. SQL identifiers are validated before any query is built.
 
 The client adapter is selected automatically. You can force it in `Config.Client.Integrations.appearance` if more than one clothing resource happens to be installed.
+
+## Saved peds
+
+There is no ped picker anywhere in this resource. It only remembers the model a character is already in.
+
+If an admin or another resource sets a character to a ped, that model is saved with its components and props. The character screen shows the ped instead of the freemode preview, and the character spawns back in it on the next login. Put the character back on a freemode model and the saved ped is dropped, so it goes back to its normal clothing.
+
+The ped is applied after the clothing resource has loaded the saved skin, then held for a few seconds in case that resource loads late. Timings are in `Config.Client.PedPersistence`.
+
+`Config.Server.Ped` decides which models are worth remembering:
+
+```lua
+allowed = { 'a_m_m_farmer_01' },
+blocked = { 'a_c_chop' }
+```
+
+Leave `allowed` empty to remember any ped. Names and hashes both work.
+
+Turn it off in `Config.Server.Ped.enabled`. Turn off `Config.Client.PedPersistence.enabled` as well if you want the client to stop watching the model.
 
 ## Character animations
 

@@ -12,3 +12,10 @@ CREATE TABLE IF NOT EXISTS `xs_multichar_slots` (
     `updated_by` VARCHAR(64) DEFAULT NULL,
     PRIMARY KEY (`license`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `xs_multichar_peds` (
+    `citizenid` VARCHAR(64) NOT NULL,
+    `model` INT NOT NULL,
+    `variation` LONGTEXT DEFAULT NULL,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`citizenid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

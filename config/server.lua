@@ -42,6 +42,21 @@ Config.Server.Appearance = {
     activeColumn = 'active' -- set to false if your table has no active column
 }
 
+Config.Server.Ped = {
+    enabled = true,
+
+    -- Leave empty to remember any ped a character is put in. Fill it in to only
+    -- remember these models. Names or hashes both work.
+    allowed = {
+        -- 'a_m_m_farmer_01'
+    },
+
+    -- Never remembered, even if a character is set to one.
+    blocked = {},
+
+    cooldownMs = 1000
+}
+
 Config.Server.Dossier = {
     metadataFields = {
         -- { key = 'callsign', label = 'Callsign' }

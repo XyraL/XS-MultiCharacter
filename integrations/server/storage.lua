@@ -23,6 +23,16 @@ local slotsTable = [[
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ]]
 
+local pedsTable = [[
+    CREATE TABLE IF NOT EXISTS `xs_multichar_peds` (
+        `citizenid` VARCHAR(64) NOT NULL,
+        `model` INT NOT NULL,
+        `variation` LONGTEXT DEFAULT NULL,
+        `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`citizenid`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+]]
+
 local function warn(message)
     print(('^3[XS-MultiCharacter] Storage warning:^0 %s'):format(message))
 end
@@ -31,8 +41,10 @@ MySQL.ready(function()
     if Config.Server.Database and Config.Server.Database.autoCreateTables then
         local activityOk, activityError = pcall(MySQL.query.await, activityTable)
         local slotsOk, slotsError = pcall(MySQL.query.await, slotsTable)
+        local pedsOk, pedsError = pcall(MySQL.query.await, pedsTable)
         if not activityOk then warn(activityError) end
         if not slotsOk then warn(slotsError) end
+        if not pedsOk then warn(pedsError) end
     end
     local ok, rows = pcall(MySQL.query.await, 'SELECT license, slots FROM xs_multichar_slots')
     if ok then
@@ -112,4 +124,36 @@ end
 function XSStorage.deleteActivity(citizenid)
     if not Config.Server.Activity.enabled or not XSStorage.awaitReady() then return end
     pcall(MySQL.update.await, 'DELETE FROM xs_multichar_activity WHERE citizenid = ?', { citizenid })
+end
+
+local function pedEnabled()
+    return Config.Server.Ped ~= nil and Config.Server.Ped.enabled == true
+end
+
+function XSStorage.getPed(citizenid)
+    if not pedEnabled() or not XSStorage.awaitReady() then return nil end
+    local ok, row = pcall(MySQL.single.await, 'SELECT model, variation FROM xs_multichar_peds WHERE citizenid = ? LIMIT 1', { citizenid })
+    if not ok or not row then return nil end
+    local model = tonumber(row.model)
+    if not model then return nil end
+    local variation
+    if row.variation and row.variation ~= '' then
+        local decoded, data = pcall(json.decode, row.variation)
+        if decoded then variation = data end
+    end
+    return { model = model, variation = variation or { components = {}, props = {} } }
+end
+
+function XSStorage.setPed(citizenid, model, variation)
+    if not pedEnabled() or not XSStorage.awaitReady() then return false end
+    return pcall(MySQL.prepare.await, [[
+        INSERT INTO xs_multichar_peds (citizenid, model, variation)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE model = VALUES(model), variation = VALUES(variation)
+    ]], { citizenid, model, json.encode(variation or { components = {}, props = {} }) })
+end
+
+function XSStorage.deletePed(citizenid)
+    if not XSStorage.awaitReady() then return false end
+    return pcall(MySQL.update.await, 'DELETE FROM xs_multichar_peds WHERE citizenid = ?', { citizenid })
 end

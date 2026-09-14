@@ -330,8 +330,75 @@ RegisterNetEvent('XS-MultiCharacter:server:delete', function(citizenid)
     TriggerEvent('XS-MultiCharacter:server:characterDeleting', src, citizenid)
     XSBridge.delete(src, citizenid)
     XSStorage.deleteActivity(citizenid)
+    XSStorage.deletePed(citizenid)
     TriggerEvent('XS-MultiCharacter:server:characterDeleted', src, citizenid)
     TriggerClientEvent('XS-MultiCharacter:client:refresh', src)
+end)
+
+local function normalizeHash(value)
+    if type(value) == 'string' then value = joaat(value) end
+    value = tonumber(value)
+    if not value then return nil end
+    value = math.floor(value) % 0x100000000
+    if value >= 0x80000000 then value = value - 0x100000000 end
+    return value
+end
+
+local function hashSet(list)
+    local set, count = {}, 0
+    for _, model in ipairs(list or {}) do
+        local hash = normalizeHash(model)
+        if hash then set[hash], count = true, count + 1 end
+    end
+    return set, count
+end
+
+local allowedPeds, allowedPedCount = hashSet(Config.Server.Ped and Config.Server.Ped.allowed)
+local blockedPeds = hashSet(Config.Server.Ped and Config.Server.Ped.blocked)
+
+local function index(value, maximum)
+    value = math.floor(tonumber(value) or 0)
+    if value < 0 then return 0 end
+    return math.min(value, maximum)
+end
+
+local function sanitizeVariation(data)
+    local clean = { components = {}, props = {} }
+    if type(data) ~= 'table' then return clean end
+    for _, component in ipairs(type(data.components) == 'table' and data.components or {}) do
+        if type(component) == 'table' and #clean.components < 12 then
+            clean.components[#clean.components + 1] = {
+                id = index(component.id, 11),
+                drawable = index(component.drawable, 4095),
+                texture = index(component.texture, 255),
+                palette = index(component.palette, 15)
+            }
+        end
+    end
+    for _, prop in ipairs(type(data.props) == 'table' and data.props or {}) do
+        if type(prop) == 'table' and #clean.props < 8 then
+            clean.props[#clean.props + 1] = {
+                id = index(prop.id, 7),
+                drawable = index(prop.drawable, 4095),
+                texture = index(prop.texture, 255)
+            }
+        end
+    end
+    return clean
+end
+
+RegisterNetEvent('XS-MultiCharacter:server:ped', function(payload)
+    local src = source
+    if not Config.Server.Ped or not Config.Server.Ped.enabled or type(payload) ~= 'table' then return end
+    if not ready(src, 'ped', Config.Server.Ped.cooldownMs) then return end
+    local player = XSBridge.getPlayer(src)
+    if not player then return end
+    local citizenid = player.PlayerData.citizenid
+    if payload.clear == true then return XSStorage.deletePed(citizenid) end
+    local model = normalizeHash(payload.model)
+    if not model or model == 0 or blockedPeds[model] then return end
+    if allowedPedCount > 0 and not allowedPeds[model] then return end
+    XSStorage.setPed(citizenid, model, sanitizeVariation(payload.variation))
 end)
 
 RegisterNetEvent('XS-MultiCharacter:server:selectSpawn', function(spawnId)

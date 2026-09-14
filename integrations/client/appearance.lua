@@ -17,14 +17,17 @@ function XSAppearance.model(saved, gender)
     local model = saved and saved.model
     if type(model) == 'string' and tonumber(model) then model = tonumber(model) end
     if type(model) == 'string' then model = joaat(model) end
-    if type(model) ~= 'number' or not IsModelInCdimage(model) then
+    model = XSPed.normalize(model)
+    if not model or not IsModelInCdimage(model) then
         return tonumber(gender) == 1 and Config.Client.Scene.femaleModel or Config.Client.Scene.maleModel
     end
     return model
 end
 
 function XSAppearance.apply(ped, saved)
-    if not saved or not saved.appearance then return false end
+    if not saved then return false end
+    if saved.ped and XSPed.matches(ped, saved.model) then return XSPed.applyVariation(ped, saved.ped) end
+    if not saved.appearance then return false end
     local mode = XSAppearance.mode()
     if mode == 'illenium-appearance' then
         return pcall(function() exports['illenium-appearance']:setPedAppearance(ped, saved.appearance) end)

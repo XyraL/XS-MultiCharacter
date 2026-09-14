@@ -7,7 +7,7 @@ local function decode(value)
     return ok and decoded or nil
 end
 
-function XSServerAppearance.get(citizenid)
+local function savedSkin(citizenid)
     local config = Config.Server.Appearance
     if not config.enabled then return nil end
     local active = config.activeColumn and (' AND `%s` = 1'):format(config.activeColumn) or ''
@@ -21,4 +21,14 @@ function XSServerAppearance.get(citizenid)
     end
     if not row then return nil end
     return { model = row.model, appearance = decode(row.appearance) }
+end
+
+function XSServerAppearance.get(citizenid)
+    local saved = savedSkin(citizenid)
+    local ped = XSStorage.getPed(citizenid)
+    if not ped then return saved end
+    saved = saved or {}
+    saved.model = ped.model
+    saved.ped = ped.variation
+    return saved
 end

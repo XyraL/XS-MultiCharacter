@@ -44,6 +44,15 @@ function XSValidation.run(side)
         else
             errors[#errors + 1] = 'Config.Client.Integrations is missing.'
         end
+        local pedPersistence = Config.Client and Config.Client.PedPersistence
+        if pedPersistence == nil then
+            warnings[#warnings + 1] = 'Config.Client.PedPersistence is missing, so saved peds will not be restored.'
+        else
+            add(errors, type(pedPersistence.enabled) == 'boolean', 'Ped persistence enabled must be true or false.')
+            add(errors, type(pedPersistence.ignoredModels) == 'table', 'Ped persistence ignoredModels must be a table.')
+            add(errors, (tonumber(pedPersistence.checkIntervalMs) or 0) >= 250, 'Ped persistence checkIntervalMs must be 250 or higher.')
+            add(errors, (tonumber(pedPersistence.confirmChecks) or 0) >= 1, 'Ped persistence confirmChecks must be at least 1.')
+        end
     else
         add(errors, Config.Server and Config.Server.Slots ~= nil, 'config/server.lua did not load.')
         if Config.Server and Config.Server.Slots and Config.Server.Appearance and Config.Server.Database and Config.Server.Admin then
@@ -61,6 +70,15 @@ function XSValidation.run(side)
                 add(errors, value == false or (type(value) == 'string' and value:match('^[%w_]+$') ~= nil), ('Appearance %s contains an invalid SQL identifier.'):format(key))
             end
             add(errors, type(Config.Server.Database.autoCreateTables) == 'boolean', 'Database autoCreateTables must be true or false.')
+            local ped = Config.Server.Ped
+            if ped == nil then
+                warnings[#warnings + 1] = 'Config.Server.Ped is missing, so peds will not be remembered.'
+            else
+                add(errors, type(ped.enabled) == 'boolean', 'Config.Server.Ped.enabled must be true or false.')
+                add(errors, type(ped.allowed) == 'table', 'Config.Server.Ped.allowed must be a table.')
+                add(errors, type(ped.blocked) == 'table', 'Config.Server.Ped.blocked must be a table.')
+                add(errors, tonumber(ped.cooldownMs) ~= nil, 'Config.Server.Ped.cooldownMs must be a number.')
+            end
             add(errors, type(Config.Server.Admin.command) == 'string' and Config.Server.Admin.command:match('^[%w_-]+$') ~= nil, 'The admin command contains invalid characters.')
         else
             errors[#errors + 1] = 'One or more required server config sections are missing.'
