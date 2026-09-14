@@ -301,6 +301,12 @@ Identity -> Apartment -> Clothing
 
 The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so it leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.
 
+Auto only knows `qbx_apartments` and `qb-apartments`. If yours is a renamed fork, put its name in `Config.FirstCharacter.apartments.resource` so the handoff still happens.
+
+With no apartment resource to hand off to, it spawns at `Config.Spawn.default` and opens clothing itself. Before it does, it waits for anything else that took the screen to close, and drops out entirely if another resource opens the first-character editor first. Timings are in `Config.FirstCharacter.clothing`.
+
+Clothing opens with `qb-clothes:client:CreateFirstCharacter`, which qb-clothing, illenium-appearance, and fivem-appearance all listen for. If yours uses a different event, put it in `Config.FirstCharacter.clothing.firstCharacterEvent`.
+
 If you use a custom apartment event that does not open clothing, set `Config.FirstCharacter.apartments.opensClothingAfterSelection` to `false`. It will use the clothing-first fallback and watch the events in `Config.FirstCharacter.clothing.finishedEvents` before opening your apartment event.
 
 ## Before going live

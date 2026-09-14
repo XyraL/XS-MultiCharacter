@@ -2,6 +2,7 @@ local previewPed, previewCam
 local characters, spawnOptions = {}, {}
 local activeCharacter, activeCharacterData
 local waitingForClothing, selectorOpen = false, false
+local openingClothing, clothingHandledElsewhere = false, false
 local previewToken = 0
 
 if not XSValidation.print('client') then return end
@@ -184,6 +185,37 @@ for i = 1, #Config.FirstCharacter.clothing.finishedEvents do
     RegisterNetEvent(Config.FirstCharacter.clothing.finishedEvents[i], openApartmentsAfterClothing)
 end
 
+local firstCharacterEvent = XSAppearance.firstCharacterEvent()
+if firstCharacterEvent then
+    AddEventHandler(firstCharacterEvent, function()
+        if openingClothing then return end
+        clothingHandledElsewhere = true
+    end)
+end
+
+local function openClothingWhenClear()
+    local clothing = Config.FirstCharacter.clothing
+    CreateThread(function()
+        Wait(clothing.openDelayMs or 0)
+        if IsNuiFocused() then
+            local clear = GetGameTimer() + ((clothing.waitForOtherMenusSeconds or 0) * 1000)
+            while waitingForClothing and IsNuiFocused() and GetGameTimer() < clear do Wait(150) end
+            local handoff = GetGameTimer() + ((clothing.handoffSeconds or 0) * 1000)
+            while waitingForClothing and not clothingHandledElsewhere and GetGameTimer() < handoff do Wait(150) end
+        end
+        if not waitingForClothing or clothingHandledElsewhere then return end
+        openingClothing = true
+        XSBridge.openClothing()
+        openingClothing = false
+        local deadline = GetGameTimer() + (clothing.fallbackSeconds * 1000)
+        while waitingForClothing and not IsNuiFocused() and GetGameTimer() < deadline do Wait(100) end
+        if not waitingForClothing then return end
+        if IsNuiFocused() then while waitingForClothing and IsNuiFocused() do Wait(150) end end
+        Wait(250)
+        openApartmentsAfterClothing()
+    end)
+end
+
 exports('GetSelectedCharacter', function() return activeCharacter, activeCharacterData end)
 exports('IsSelectingCharacter', function() return selectorOpen end)
 
@@ -217,6 +249,7 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
     TriggerEvent('XS-MultiCharacter:client:characterSelected', citizenid, isNew, playerData)
     if isNew then
         waitingForClothing = false
+        clothingHandledElsewhere = false
         fadeOut()
         removeScene()
         local ped = PlayerPedId()
@@ -231,18 +264,11 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
             return
         end
 
+        debugPrint('No apartment resource to hand the new character to, using the spawn and clothing fallback.')
         spawnAt(Config.Spawn.default, 'default')
         if Config.FirstCharacter.clothing.enabled and Config.FirstCharacter.clothing.mode ~= 'none' then
             waitingForClothing = true
-            XSBridge.openClothing()
-            CreateThread(function()
-                local deadline = GetGameTimer() + (Config.FirstCharacter.clothing.fallbackSeconds * 1000)
-                while waitingForClothing and not IsNuiFocused() and GetGameTimer() < deadline do Wait(100) end
-                if not waitingForClothing then return end
-                if IsNuiFocused() then while waitingForClothing and IsNuiFocused() do Wait(150) end end
-                Wait(250)
-                openApartmentsAfterClothing()
-            end)
+            openClothingWhenClear()
         else
             waitingForClothing = true
             openApartmentsAfterClothing()

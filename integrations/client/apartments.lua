@@ -8,7 +8,9 @@ function XSApartments.open(character)
     local mode = Config.FirstCharacter.apartments.mode
     if mode == 'auto' then mode = Config.Client.Integrations.apartments end
     if mode == 'auto' then
-        if running('qbx_apartments') then mode = 'qbx'
+        local named = Config.FirstCharacter.apartments.resource
+        if type(named) == 'string' and named ~= '' and running(named) then mode = 'qb'
+        elseif running('qbx_apartments') then mode = 'qbx'
         elseif running('qb-apartments') then mode = 'qb'
         else mode = 'none' end
     end

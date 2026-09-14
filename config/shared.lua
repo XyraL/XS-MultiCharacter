@@ -19,17 +19,34 @@ Config.FirstCharacter = {
         enabled = true,
         mode = 'auto', -- auto, qb-clothing, illenium-appearance, fivem-appearance, event, none
         event = '',
+
+        -- Every QB and Qbox appearance resource listens for this to build a new
+        -- character. Change it only if yours uses its own event.
+        firstCharacterEvent = 'qb-clothes:client:CreateFirstCharacter',
+
         finishedEvents = {
             'qb-clothing:client:onMenuClose',
             'illenium-appearance:client:finishedCustomization',
             'fivem-appearance:client:finishedCustomization'
         },
-        fallbackSeconds = 15
+        fallbackSeconds = 15,
+
+        -- Another resource can take the screen right after a character is made,
+        -- usually an apartment or spawn selector. These decide how long to wait
+        -- for it to appear, how long to let the player use it, and how long to
+        -- give it to open the clothing editor itself before this one does.
+        openDelayMs = 3000,
+        waitForOtherMenusSeconds = 300,
+        handoffSeconds = 10
     },
     apartments = {
         enabled = true,
         mode = 'auto', -- auto, qbx, qb, event, none
         event = '',
+
+        -- Auto only knows qbx_apartments and qb-apartments. Name your resource
+        -- here if it is a renamed fork.
+        resource = '',
 
         -- Standard Qbox/QBCore apartments open first-character clothing after
         -- the apartment is picked. Turn this off only if your custom apartment

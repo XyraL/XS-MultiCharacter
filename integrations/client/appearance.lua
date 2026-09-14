@@ -37,11 +37,20 @@ function XSAppearance.apply(ped, saved)
     return false
 end
 
+function XSAppearance.firstCharacterEvent()
+    local clothing = Config.FirstCharacter.clothing
+    if clothing.mode == 'none' then return nil end
+    if clothing.mode == 'event' then
+        return clothing.event ~= '' and clothing.event or nil
+    end
+    local event = clothing.firstCharacterEvent
+    return type(event) == 'string' and event ~= '' and event or nil
+end
+
 function XSAppearance.openFirstCharacter()
-    local mode = Config.FirstCharacter.clothing.mode
-    if mode == 'auto' then mode = XSAppearance.mode() end
-    if mode == 'illenium-appearance' then TriggerEvent('illenium-appearance:client:openClothingShopMenu', true)
-    elseif mode == 'fivem-appearance' then TriggerEvent('fivem-appearance:client:openClothingShopMenu', true)
-    elseif mode == 'qb-clothing' then TriggerEvent('qb-clothes:client:CreateFirstCharacter')
-    elseif mode == 'event' and Config.FirstCharacter.clothing.event ~= '' then TriggerEvent(Config.FirstCharacter.clothing.event) end
+    if Config.FirstCharacter.clothing.mode == 'auto' and XSAppearance.mode() == 'none' then return false end
+    local event = XSAppearance.firstCharacterEvent()
+    if not event then return false end
+    TriggerEvent(event)
+    return true
 end
