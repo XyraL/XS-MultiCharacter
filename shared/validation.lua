@@ -80,6 +80,15 @@ function XSValidation.run(side)
                 add(errors, tonumber(ped.cooldownMs) ~= nil, 'Config.Server.Ped.cooldownMs must be a number.')
             end
             add(errors, type(Config.Server.Admin.command) == 'string' and Config.Server.Admin.command:match('^[%w_-]+$') ~= nil, 'The admin command contains invalid characters.')
+            local kit = Config.Server.StarterKit
+            if kit and kit.enabled then
+                add(errors, type(kit.items or {}) == 'table', 'Config.Server.StarterKit.items must be a table.')
+                for index, entry in ipairs(kit.items or {}) do
+                    local names = type(entry.name) == 'table' and entry.name or { entry.name }
+                    add(errors, type(names[1]) == 'string' and names[1] ~= '', ('Starter kit item %s needs a name.'):format(index))
+                    add(errors, entry.amount == nil or (tonumber(entry.amount) or 0) >= 1, ('Starter kit item %s needs an amount of 1 or more.'):format(index))
+                end
+            end
         else
             errors[#errors + 1] = 'One or more required server config sections are missing.'
         end

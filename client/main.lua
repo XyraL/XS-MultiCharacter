@@ -234,7 +234,7 @@ RegisterNetEvent('XS-MultiCharacter:client:list', function(payload)
             character.dossier.activity.lastDistrict = GetLabelText(GetNameOfZone(character.position.x, character.position.y, character.position.z))
         end
     end
-    SendNUIMessage({ action = 'characters', characters = characters, slots = payload.slots or 1 })
+    SendNUIMessage({ action = 'characters', characters = characters, slots = payload.slots or 1, kit = payload.kit })
 end)
 
 RegisterNetEvent('XS-MultiCharacter:client:adminOpen', function()

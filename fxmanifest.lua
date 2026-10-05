@@ -26,6 +26,7 @@ server_scripts {
     'config/server.lua',
     'integrations/server/*.lua',
     'bridge/server.lua',
+    'server/starter.lua',
     'server/main.lua'
 }
 

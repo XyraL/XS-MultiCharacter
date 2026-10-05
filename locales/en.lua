@@ -68,5 +68,9 @@ Locales.en = {
     nameTooShort = 'First and last name are too short.',
     invalidCharacter = 'That character could not be found.',
     invalidSpawn = 'That spawn is not available to this character.',
-    noFramework = 'Could not find qbx_core or qb-core. Check Config.Framework and your ensure order.'
+    noFramework = 'Could not find qbx_core or qb-core. Check Config.Framework and your ensure order.',
+    starterKit = 'You start with %{list}.',
+    starterBank = '%{amount} in the bank',
+    starterUnknownItem = 'Starter kit: no item called %{item} in your inventory, so it was skipped.',
+    starterNoInventory = 'Starter kit: the inventory never opened for the new character, so the items were not given.'
 }

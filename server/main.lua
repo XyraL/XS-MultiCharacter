@@ -264,7 +264,7 @@ RegisterNetEvent('XS-MultiCharacter:server:list', function()
         row.metadata = nil
         characters[#characters + 1] = row
     end
-    TriggerClientEvent('XS-MultiCharacter:client:list', src, { characters = characters, slots = allowedSlots(src) })
+    TriggerClientEvent('XS-MultiCharacter:client:list', src, { characters = characters, slots = allowedSlots(src), kit = XSStarter.summary() })
 end)
 
 RegisterNetEvent('XS-MultiCharacter:server:load', function(citizenid)
@@ -317,6 +317,7 @@ RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
         XSStorage.markSelected(playerData.citizenid)
         activeSessions[src] = { citizenid = playerData.citizenid, startedAt = os.time() }
         if not Config.FirstCharacter.apartments.enabled then spawnConfirmation[src] = 'default' end
+        XSStarter.give(src, playerData)
         TriggerEvent('XS-MultiCharacter:server:characterCreated', src, playerData)
         TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {})
     end

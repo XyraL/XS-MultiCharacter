@@ -57,6 +57,42 @@ Config.Server.Ped = {
     cooldownMs = 1000
 }
 
+-- What a brand new character starts with. Handed over once, the moment the
+-- character is made. An item your inventory does not know is skipped and named
+-- in the server console, so a typo never stops the rest.
+Config.Server.StarterKit = {
+    enabled = true,
+
+    -- On top of whatever your framework already starts every character with.
+    money = {
+        cash = 5000,
+        bank = 0
+    },
+
+    items = {
+        { name = 'phone', amount = 1 },
+
+        -- A list of names uses the first one your inventory has, so the same
+        -- kit works on ox_inventory (water, burger) and qb-inventory
+        -- (water_bottle, sandwich).
+        { name = { 'water', 'water_bottle' }, amount = 10 },
+        { name = { 'burger', 'sandwich' }, amount = 10 },
+
+        -- 'idcard' and 'license' fill in the new character's own details, the
+        -- way Qbox and QBCore make them. Uses qbx_idcard when it is running.
+        { name = 'id_card', amount = 1, metadata = 'idcard' },
+        { name = 'driver_license', amount = 1, metadata = 'license' },
+
+        -- metadata can also be a table, or a function(playerData, source)
+        -- that returns one.
+    },
+
+    currency = '$',
+
+    -- Tell the player what they were given.
+    notify = true
+}
+
 Config.Server.Dossier = {
     metadataFields = {
         -- { key = 'callsign', label = 'Callsign' }
