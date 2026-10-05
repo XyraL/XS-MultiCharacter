@@ -89,9 +89,21 @@ Config.Client.Integrations = {
 
 Config.Client.UI = {
     title = 'XYRAL',
-    subtitle = 'IDENTITY NETWORK',
-    accent = '#8b5cf6',
-    background = '#090a0f',
+    subtitle = 'PASSPORT OFFICE',
+
+    passport = {
+        -- Printed on the cover, the seal and the machine-readable strip.
+        issuer = 'STATE OF SAN ANDREAS',
+        code = 'SAN', -- three letters
+
+        cover = '#14213d',
+        foil = '#d6b46a',
+
+        -- The smaller second-language labels under each field. Change the
+        -- wording in locales/, or set this to false for one language only.
+        secondLanguage = true
+    },
+
     showCash = true,
     showBank = true,
     showCitizenId = true,
@@ -102,6 +114,46 @@ Config.Client.UI = {
     showGang = true,
     showPhone = true,
     showActivity = true,
-    activityDateStyle = 'short', -- short, medium, long
     currency = '$'
+}
+
+-- Every character's photo is taken from their own ped and shown on their
+-- boarding pass and passport. Turn it off and the photo boxes stay blank.
+Config.Client.Photos = {
+    enabled = true,
+
+    -- A see-through background, like a real passport photo. When the game
+    -- will not give one, the normal photo is used instead.
+    transparent = true
+}
+
+-- A short arrival scene played once for a brand new character, right after
+-- the passport application and before the apartment or clothing screens.
+Config.Client.Arrival = {
+    enabled = true,
+    place = 'Los Santos International', -- printed on the ADMITTED stamp
+    skipControl = 22, -- Space. Change arrivalSkip in locales/ to match.
+
+    -- The camera glides from `from` to `to` while looking at `lookAt`. Add,
+    -- remove or move shots freely.
+    shots = {
+        {
+            from = vec3(-1700.0, -3700.0, 170.0),
+            to = vec3(-1420.0, -3300.0, 115.0),
+            lookAt = vec3(-1000.0, -2700.0, 40.0),
+            durationMs = 6500,
+            fov = 50.0
+        },
+        {
+            from = vec3(-1064.0, -2778.0, 32.0),
+            to = vec3(-1050.0, -2756.0, 22.0),
+            lookAt = vec3(-1035.7, -2731.9, 14.0),
+            durationMs = 5500,
+            fov = 45.0
+        }
+    },
+
+    -- Golden hour for the arrival. Set either to false to keep the server's.
+    time = { hour = 18, minute = 30 },
+    weather = 'EXTRASUNNY'
 }

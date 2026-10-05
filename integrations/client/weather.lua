@@ -15,14 +15,21 @@ local function mode()
     return 'native'
 end
 
-function XSWeather.enterScene()
+local clockOverridden = false
+
+function XSWeather.enterScene(weather, time)
+    if weather == nil then weather = Config.Client.Scene.weather end
+    if time == nil then time = Config.Client.Scene.time end
     activeMode = mode()
     if activeMode == 'qb-weathersync' then TriggerEvent('qb-weathersync:client:DisableSync')
     elseif activeMode == 'qbx' then TriggerEvent('qbx_weathersync:client:disableSync')
     elseif activeMode == 'cd_easytime' then TriggerEvent('cd_easytime:PauseSync', true) end
     if activeMode ~= 'none' then
-        SetWeatherTypeNowPersist(Config.Client.Scene.weather)
-        NetworkOverrideClockTime(Config.Client.Scene.time.hour, Config.Client.Scene.time.minute, 0)
+        if weather then SetWeatherTypeNowPersist(weather) end
+        if time then
+            NetworkOverrideClockTime(time.hour or 12, time.minute or 0, 0)
+            clockOverridden = true
+        end
     end
 end
 
@@ -32,5 +39,9 @@ function XSWeather.leaveScene()
     elseif activeMode == 'cd_easytime' then TriggerEvent('cd_easytime:PauseSync', false) end
     ClearOverrideWeather()
     ClearWeatherTypePersist()
+    if clockOverridden then
+        NetworkClearClockTimeOverride()
+        clockOverridden = false
+    end
     activeMode = nil
 end

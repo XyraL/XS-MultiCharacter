@@ -18,6 +18,9 @@ function XSValidation.run(side)
     if apartments then
         add(errors, type(apartments.opensClothingAfterSelection) == 'boolean', 'Apartment opensClothingAfterSelection must be true or false.')
     end
+    local hint = Config.Characters and Config.Characters.dateFormatHint
+    add(errors, type(hint) == 'string' and hint:find('YYYY', 1, true) ~= nil and hint:find('MM', 1, true) ~= nil and hint:find('DD', 1, true) ~= nil,
+        'Config.Characters.dateFormatHint must contain YYYY, MM and DD, for example MM/DD/YYYY.')
     add(errors, type(spawnCategories) == 'table' and #spawnCategories > 0, 'At least one spawn category is required.')
     for index, category in ipairs(spawnCategories or {}) do
         add(errors, type(category.id) == 'string' and category.id ~= '', ('Spawn category %s needs an id.'):format(index))
@@ -43,6 +46,19 @@ function XSValidation.run(side)
             add(errors, allowedAppearance[Config.Client.Integrations.appearance], 'The client appearance integration is not valid.')
         else
             errors[#errors + 1] = 'Config.Client.Integrations is missing.'
+        end
+        local passport = Config.Client and Config.Client.UI and Config.Client.UI.passport
+        if passport == nil then
+            warnings[#warnings + 1] = 'Config.Client.UI.passport is missing, so the passport uses its default look.'
+        else
+            add(errors, type(passport.code) == 'string' and passport.code:match('^%a%a%a$') ~= nil, 'Config.Client.UI.passport.code must be three letters.')
+        end
+        local arrival = Config.Client and Config.Client.Arrival
+        if arrival and arrival.enabled then
+            add(errors, type(arrival.shots) == 'table' and #arrival.shots > 0, 'Config.Client.Arrival needs at least one shot, or set enabled = false.')
+            for index, shot in ipairs(type(arrival.shots) == 'table' and arrival.shots or {}) do
+                add(errors, shot.from ~= nil and shot.lookAt ~= nil, ('Arrival shot %s needs from and lookAt.'):format(index))
+            end
         end
         local pedPersistence = Config.Client and Config.Client.PedPersistence
         if pedPersistence == nil then

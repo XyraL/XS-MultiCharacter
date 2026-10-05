@@ -16,17 +16,22 @@
 
 ---
 
-XS-MultiCharacter treats character selection as an identity system instead of a row of save slots while remaining straightforward to install.
+XS-MultiCharacter turns character selection into passport control. Every character is a boarding pass with their photo on it, and the one you pick opens as a real passport: stamps for their job, time in the city and money, a signature, and a machine-readable strip along the bottom.
 
-The character screen loads the player's saved appearance, gives each character a proper dossier, and puts the preview ped into an animation that can change with their job. The spawn screen uses actual map cameras instead of showing another flat menu.
+New characters fill in a passport application, with a customs declaration showing what they will start with, then land at the airport in a short arrival scene. Spawning is a split-flap departures board, and the camera flies to each destination as you point at it.
 
 ## Features
 
 - Qbox and QBCore support
+- Passport-themed character, creation, spawn and delete screens
+- A photo of every character, taken from their own ped
+- Starter kit for new characters: cash, bank money and any items
+- Short arrival scene for brand new characters, skippable
+- Character records for staff: search every character and fix a name or date of birth
 - Saved appearance previews for illenium-appearance, fivem-appearance, and qb-clothing
 - Remembers a ped a character was put in, without adding a ped picker
 - Character animations with job-specific presets
-- Identity dossier with support for fields from other resources
+- Passport details with support for fields from other resources
 - Cinematic spawn cameras
 - Last location support
 - Per-character spawn permissions
@@ -37,7 +42,7 @@ The character screen loads the player's saved appearance, gives each character a
 - Categorized spawn locations
 - Persistent character activity information
 - Configurable visual scene effects without audio scene changes
-- ACE-protected admin slot manager
+- ACE-protected slot manager and character records
 - No in-session character switching command
 
 ## Requirements
@@ -68,8 +73,8 @@ It creates its three small tables automatically by default. If you turn automati
 ## Where everything is
 
 - `config/shared.lua` has character rules, first-time setup, and spawn locations.
-- `config/client.lua` has the scene, cameras, animations, integrations, and UI style.
-- `config/server.lua` has slots, the appearance table, dossier fields, and cooldowns.
+- `config/client.lua` has the scene, cameras, photos, the arrival scene, animations, integrations, and the passport look.
+- `config/server.lua` has slots, the starter kit, the appearance table, passport fields, and cooldowns.
 - `locales/en.lua` has every player-facing line used by the script.
 - `integrations/` contains the small adapters. This is the place to edit for a renamed or custom resource.
 
@@ -90,6 +95,57 @@ Categories are defined above the spawn locations in `config/shared.lua`. Give a 
 
 Empty categories are hidden automatically. Last location has its own configurable category, and locations without a category use `defaultCategory`.
 
+## The passport
+
+The look is set in `Config.Client.UI`:
+
+```lua
+title = 'XYRAL',
+subtitle = 'PASSPORT OFFICE',
+passport = {
+    issuer = 'STATE OF SAN ANDREAS',
+    code = 'SAN',
+    cover = '#14213d',
+    foil = '#d6b46a',
+    secondLanguage = true
+}
+```
+
+`cover` colours the booklet and the buttons, `foil` the gold print. `secondLanguage` adds the small Spanish label under each field the way real passports print two languages; change the wording in `locales/` or set it to `false`.
+
+The `show...` options in the same table still hide fields you do not want on the passport. Hidden fields are left out of the machine-readable strip as well.
+
+## Starter kit
+
+Every brand new character gets the starter kit once, the moment they are made. It is in `Config.Server.StarterKit`:
+
+```lua
+money = { cash = 5000, bank = 0 },
+items = {
+    { name = 'phone', amount = 1 },
+    { name = { 'water', 'water_bottle' }, amount = 10 },
+    { name = { 'burger', 'sandwich' }, amount = 10 },
+    { name = 'id_card', amount = 1, metadata = 'idcard' },
+    { name = 'driver_license', amount = 1, metadata = 'license' }
+}
+```
+
+A list of names uses the first one your inventory has, so one kit works on ox_inventory and qb-inventory. An item your inventory does not know is skipped and named in the server console. `'idcard'` and `'license'` fill in the new character's own details, and use qbx_idcard when it is running.
+
+The money is on top of the framework's normal starting money. The framework's own starter items are handed out by its own character screen, which this replaces, so add anything else you want new players to have here.
+
+The create screen shows the kit as a customs declaration, so players see what they are getting before they sign.
+
+## Character photos
+
+Each character's photo is taken from their own ped while the character screen is open: hidden copies stand behind the camera for the boarding passes, and the character you are looking at is photographed live. Nothing is stored. Turn it off in `Config.Client.Photos`.
+
+## First arrival
+
+A brand new character lands in a short arrival scene before the apartment and clothing screens: a couple of camera shots over the airport while their passport is stamped ADMITTED. Players can skip it with Space.
+
+The shots, the time of day and the place on the stamp are in `Config.Client.Arrival`. Each shot glides the camera from `from` to `to` while looking at `lookAt`. Set `enabled = false` to go straight to the apartment screen.
+
 ## Character activity
 
 It tracks:
@@ -107,7 +163,7 @@ Turn activity off in `Config.Server.Activity`, or hide it without disabling coll
 
 `Config.Client.SceneEffects` controls the character scene timecycle, depth of field, and slow orbit. Every effect can be disabled separately. This resource does not start, stop, or replace GTA audio scenes.
 
-## Admin slot manager
+## Character records
 
 Give staff the configured ACE:
 
@@ -115,7 +171,9 @@ Give staff the configured ACE:
 add_ace group.admin xs.multichar.admin allow
 ```
 
-Then use `/charslots` in game to open the manager. It shows online players, current character count, effective slots, and persistent overrides.
+Then use `/charslots` in game. The first tab shows online players with their character count, effective slots, and persistent overrides.
+
+The second tab searches every character on the server, online or not, by name, citizen ID or license. Pick one to fix their first name, last name, or date of birth. A character in play is updated straight away; anyone else gets the change the next time they load in. Every change is printed to the server console and fires `XS-MultiCharacter:server:characterEdited`.
 
 The direct command form also works:
 
@@ -243,9 +301,11 @@ byJob = {
 
 Presets can use a scenario or an animation dictionary. Unknown jobs use the default preset.
 
-## Dossier fields
+## Passport fields
 
-The standard dossier includes identity, occupation, position, affiliation, phone, nationality, account number, and money. Display toggles are in the client config.
+The passport shows identity, occupation, position, affiliation, phone, nationality, account number, and money. Display toggles are in the client config.
+
+Extra fields from the server config or other resources are handwritten under Observations on the visa page.
 
 Simple metadata fields can be added in the server config:
 
@@ -298,6 +358,8 @@ XS-MultiCharacter:server:characterCreated  -- source, playerData
 XS-MultiCharacter:server:characterDeleting -- source, citizenid
 XS-MultiCharacter:server:characterDeleted  -- source, citizenid
 XS-MultiCharacter:server:characterSpawned  -- source, playerData, spawnId
+XS-MultiCharacter:server:starterKitGiven   -- source, citizenid, given
+XS-MultiCharacter:server:characterEdited   -- adminSource, citizenid, before, after
 ```
 
 Client-side lifecycle events:
@@ -316,7 +378,7 @@ These are local lifecycle events for integrations. The resource does not expose 
 The default flow is:
 
 ```text
-Identity -> Apartment -> Clothing
+Passport application -> Arrival -> Apartment -> Clothing
 ```
 
 The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so it leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.
@@ -333,9 +395,10 @@ If you use a custom apartment event that does not open clothing, set `Config.Fir
 
 - Test the full new-character flow with the exact appearance and apartment versions on your server.
 - Test one existing male and female character to confirm the saved appearance query matches your table.
-- Check every camera location for interiors or map assets that only your server loads.
+- Check every camera location for interiors or map assets that only your server loads, including the arrival shots.
+- Make sure the starter kit item names exist in your inventory. Anything missing is named in the server console.
 - Keep spawn IDs unique.
-- Grant `xs.multichar.admin` only to staff who should manage persistent slot limits.
+- Grant `xs.multichar.admin` only to staff who should manage slot limits and edit character names.
 - Do not start the old multicharacter resource beside this one.
 
 ## Documentation

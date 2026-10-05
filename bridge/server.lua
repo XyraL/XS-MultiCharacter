@@ -18,6 +18,22 @@ function XSBridge.getPlayer(source)
     return XSBridge.core and XSBridge.core.Functions.GetPlayer(source) or nil
 end
 
+function XSBridge.getPlayerByCitizenId(citizenid)
+    if XSBridge.name == 'qbox' then
+        local ok, player = pcall(function() return exports.qbx_core:GetPlayerByCitizenId(citizenid) end)
+        return ok and player or nil
+    end
+    if not XSBridge.core then return nil end
+    return XSBridge.core.Functions.GetPlayerByCitizenId(citizenid)
+end
+
+function XSBridge.setCharinfo(player, charinfo)
+    if not player or not player.Functions or not player.Functions.SetPlayerData then return false end
+    local ok = pcall(player.Functions.SetPlayerData, 'charinfo', charinfo)
+    if ok and player.Functions.Save then pcall(player.Functions.Save) end
+    return ok
+end
+
 function XSBridge.login(source, citizenid, newData)
     if XSBridge.name == 'qbox' then
         return exports.qbx_core:Login(source, citizenid, newData)

@@ -35,6 +35,16 @@ local function ownsCharacter(source, citizenid)
     return MySQL.scalar.await('SELECT 1 FROM players WHERE citizenid = ? AND (license = ? OR license = ?) LIMIT 1', { citizenid, primary, secondary }) ~= nil
 end
 
+local function cleanName(value)
+    value = tostring(value or ''):gsub("[^%a%s%-']", ''):gsub('^%s+', ''):gsub('%s+$', '')
+    return value:sub(1, Config.Characters.nameMaxLength)
+end
+
+local function refocus(source, message)
+    if message then XSBridge.notify(source, XSLocale(message), 'error') end
+    TriggerClientEvent('XS-MultiCharacter:client:refocus', source)
+end
+
 local function ready(source, key, duration)
     local now = GetGameTimer()
     cooldowns[source] = cooldowns[source] or {}
@@ -273,17 +283,19 @@ RegisterNetEvent('XS-MultiCharacter:server:load', function(citizenid)
     if XSBridge.getPlayer(src) then return end
     if not ownsCharacter(src, citizenid) then
         print(('[%s] %s tried to load a character they do not own.'):format(RESOURCE, src))
-        return
+        return refocus(src, 'invalidCharacter')
     end
     if XSBridge.login(src, citizenid) then
         local player = XSBridge.getPlayer(src)
-        if not player then return end
+        if not player then return refocus(src) end
         local data = player.PlayerData
         awaitingSpawn[src] = true
         XSStorage.markSelected(citizenid)
         activeSessions[src] = { citizenid = citizenid, startedAt = os.time() }
         TriggerEvent('XS-MultiCharacter:server:characterSelected', src, data)
         TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, citizenid, data.position, false, data, allowedSpawnIds(src, data))
+    else
+        refocus(src, 'invalidCharacter')
     end
 end)
 
@@ -292,17 +304,13 @@ RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
     if not ready(src, 'create', Config.Server.Security.createCooldownMs) or type(data) ~= 'table' then return end
     if XSBridge.getPlayer(src) then return end
     local cid = math.floor(tonumber(data.cid) or 0)
-    if cid < 1 or cid > allowedSlots(src) then return end
+    if cid < 1 or cid > allowedSlots(src) then return refocus(src) end
     local license, secondary = accountIdentifiers(src)
     local used = MySQL.scalar.await('SELECT 1 FROM players WHERE (license = ? OR license = ?) AND cid = ? LIMIT 1', { license, secondary, cid })
-    if used then return XSBridge.notify(src, XSLocale('slotUsed'), 'error') end
-    local function clean(value)
-        value = tostring(value or ''):gsub("[^%a%s%-']", ''):gsub('^%s+', ''):gsub('%s+$', '')
-        return value:sub(1, Config.Characters.nameMaxLength)
-    end
-    local first, last = clean(data.firstname), clean(data.lastname)
+    if used then return refocus(src, 'slotUsed') end
+    local first, last = cleanName(data.firstname), cleanName(data.lastname)
     if #first < Config.Characters.nameMinLength or #last < Config.Characters.nameMinLength then
-        return XSBridge.notify(src, XSLocale('nameTooShort'), 'error')
+        return refocus(src, 'nameTooShort')
     end
     local newData = { cid = cid, charinfo = {
         firstname = first, lastname = last, birthdate = tostring(data.birthdate or ''),
@@ -311,7 +319,7 @@ RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
     }}
     if XSBridge.login(src, nil, newData) then
         local player = XSBridge.getPlayer(src)
-        if not player then return end
+        if not player then return refocus(src) end
         local playerData = player.PlayerData
         XSStorage.ensureActivity(playerData.citizenid)
         XSStorage.markSelected(playerData.citizenid)
@@ -320,6 +328,8 @@ RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
         XSStarter.give(src, playerData)
         TriggerEvent('XS-MultiCharacter:server:characterCreated', src, playerData)
         TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {})
+    else
+        refocus(src)
     end
 end)
 
@@ -481,4 +491,134 @@ RegisterNetEvent('XS-MultiCharacter:server:adminSetSlots', function(license, amo
         XSBridge.notify(src, XSLocale('adminInvalidSlots', { maximum = Config.Server.Slots.maximum }), 'error')
     end
     TriggerClientEvent('XS-MultiCharacter:client:adminData', src, { players = adminPlayers(), maximum = Config.Server.Slots.maximum })
+end)
+
+local RECORD_COLUMNS = 'citizenid, cid, license, name, charinfo, job'
+
+local function onlineCharacters()
+    local online = {}
+    for _, value in ipairs(GetPlayers()) do
+        local playerSource = tonumber(value)
+        local player = XSBridge.getPlayer(playerSource)
+        local citizenid = player and player.PlayerData and player.PlayerData.citizenid
+        if citizenid then online[citizenid] = { source = playerSource, name = GetPlayerName(playerSource) } end
+    end
+    return online
+end
+
+local function recordRow(row, online)
+    local charinfo = decode(row.charinfo, {})
+    local job = decode(row.job, {})
+    local live = online[row.citizenid]
+    return {
+        citizenid = row.citizenid,
+        cid = row.cid,
+        license = row.license,
+        firstname = charinfo.firstname,
+        lastname = charinfo.lastname,
+        birthdate = charinfo.birthdate,
+        job = job.label,
+        online = live ~= nil,
+        ownerName = live and live.name or row.name
+    }
+end
+
+local function sendRecords(source, title, rows)
+    local online = onlineCharacters()
+    local list = {}
+    for _, row in ipairs(rows or {}) do list[#list + 1] = recordRow(row, online) end
+    table.sort(list, function(a, b)
+        local left = ('%s %s'):format(a.lastname or '', a.firstname or ''):lower()
+        local right = ('%s %s'):format(b.lastname or '', b.firstname or ''):lower()
+        if left == right then return (tonumber(a.cid) or 0) < (tonumber(b.cid) or 0) end
+        return left < right
+    end)
+    TriggerClientEvent('XS-MultiCharacter:client:adminRecords', source, { title = title, rows = list })
+end
+
+local function likePattern(term)
+    return '%' .. term:gsub('[\\%%_]', '\\%0') .. '%'
+end
+
+RegisterNetEvent('XS-MultiCharacter:server:adminSearch', function(query)
+    local src = source
+    if not isAdmin(src) or not ready(src, 'adminRecords', Config.Server.Security.requestCooldownMs) then return end
+    query = tostring(query or ''):gsub('^%s+', ''):gsub('%s+$', ''):sub(1, 64)
+    if #query < 2 then return end
+    local limit = math.max(1, math.min(100, math.floor(tonumber(Config.Server.Admin.searchLimit) or 25)))
+    local sql, params
+    if query:find('^license%d*:') then
+        sql = ('SELECT %s FROM players WHERE license = ? LIMIT %d'):format(RECORD_COLUMNS, limit)
+        params = { query }
+    else
+        local clauses = {}
+        params = { query }
+        for term in query:gmatch('%S+') do
+            if #clauses < 3 and #term >= 2 then
+                clauses[#clauses + 1] = 'charinfo LIKE ?'
+                params[#params + 1] = likePattern(term)
+            end
+        end
+        if #clauses == 0 then return end
+        sql = ('SELECT %s FROM players WHERE citizenid = ? OR (%s) LIMIT %d'):format(RECORD_COLUMNS, table.concat(clauses, ' AND '), limit)
+    end
+    local ok, rows = pcall(MySQL.query.await, sql, params)
+    if not ok then print(('^3[%s] Character search failed:^0 %s'):format(RESOURCE, rows)) end
+    sendRecords(src, XSLocale('adminSearchResults', { query = query }), ok and rows or {})
+end)
+
+RegisterNetEvent('XS-MultiCharacter:server:adminCharacters', function(target, name)
+    local src = source
+    if not isAdmin(src) or not ready(src, 'adminRecords', Config.Server.Security.requestCooldownMs) then return end
+    local targetSource = tonumber(target)
+    local primary, secondary
+    if targetSource and GetPlayerName(targetSource) then
+        primary, secondary = accountIdentifiers(targetSource)
+    elseif type(target) == 'string' and target:find('^license%d*:[%w]+$') then
+        primary, secondary = target, target
+    end
+    if not primary then return end
+    local ok, rows = pcall(MySQL.query.await, ('SELECT %s FROM players WHERE license = ? OR license = ? ORDER BY cid ASC'):format(RECORD_COLUMNS), { primary, secondary or primary })
+    local owner = targetSource and GetPlayerName(targetSource) or (type(name) == 'string' and name ~= '' and name) or primary
+    sendRecords(src, XSLocale('adminCharactersOf', { name = owner }), ok and rows or {})
+end)
+
+RegisterNetEvent('XS-MultiCharacter:server:adminEdit', function(data)
+    local src = source
+    if not isAdmin(src) or not ready(src, 'adminEdit', Config.Server.Security.requestCooldownMs) or type(data) ~= 'table' then return end
+    local function reply(ok, message, row)
+        TriggerClientEvent('XS-MultiCharacter:client:adminEdited', src, { ok = ok, message = message, row = row })
+    end
+    local citizenid = type(data.citizenid) == 'string' and data.citizenid or ''
+    if not citizenid:find('^[%w]+$') then return reply(false, XSLocale('adminNotFound')) end
+    local first, last = cleanName(data.firstname), cleanName(data.lastname)
+    if #first < Config.Characters.nameMinLength or #last < Config.Characters.nameMinLength then
+        return reply(false, XSLocale('nameTooShort'))
+    end
+    local birthdate = tostring(data.birthdate or ''):gsub('[^%d%-%./]', ''):sub(1, 16)
+    if #birthdate < 6 then return reply(false, XSLocale('adminEditFailed')) end
+    local row = MySQL.single.await(('SELECT %s FROM players WHERE citizenid = ? LIMIT 1'):format(RECORD_COLUMNS), { citizenid })
+    if not row then return reply(false, XSLocale('adminNotFound')) end
+    local charinfo = decode(row.charinfo, {})
+    local before = { firstname = charinfo.firstname, lastname = charinfo.lastname, birthdate = charinfo.birthdate }
+    local after = { firstname = first, lastname = last, birthdate = birthdate }
+    local saved = false
+    local player = XSBridge.getPlayerByCitizenId(citizenid)
+    if player and player.PlayerData then
+        local live = {}
+        for key, value in pairs(player.PlayerData.charinfo or {}) do live[key] = value end
+        live.firstname, live.lastname, live.birthdate = first, last, birthdate
+        saved = XSBridge.setCharinfo(player, live)
+        if saved then charinfo = live end
+    end
+    if not saved then
+        charinfo.firstname, charinfo.lastname, charinfo.birthdate = first, last, birthdate
+        saved = pcall(MySQL.update.await, 'UPDATE players SET charinfo = ? WHERE citizenid = ?', { json.encode(charinfo), citizenid })
+    end
+    if not saved then return reply(false, XSLocale('adminEditFailed')) end
+    row.charinfo = charinfo
+    print(('[%s] %s changed %s: %s %s (%s) -> %s %s (%s)'):format(RESOURCE, src == 0 and 'console' or (GetPlayerName(src) or src), citizenid,
+        tostring(before.firstname), tostring(before.lastname), tostring(before.birthdate), first, last, birthdate))
+    TriggerEvent('XS-MultiCharacter:server:characterEdited', src, citizenid, before, after)
+    reply(true, nil, recordRow(row, onlineCharacters()))
 end)

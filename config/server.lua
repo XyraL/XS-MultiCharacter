@@ -26,10 +26,14 @@ Config.Server.Activity = {
     updateLastPlayedOnSelect = true
 }
 
+-- The character records panel: slot overrides for online players, plus a search
+-- over every character on the server (online or not) to fix a name or a date
+-- of birth. Every change is printed to the server console.
 Config.Server.Admin = {
     enabled = true,
     ace = 'xs.multichar.admin',
-    command = 'charslots'
+    command = 'charslots',
+    searchLimit = 25
 }
 
 Config.Server.Appearance = {

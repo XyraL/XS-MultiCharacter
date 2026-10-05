@@ -35,6 +35,7 @@ local function removeScene()
     SendNUIMessage({ action = 'close' })
     destroyCamera(true)
     destroyPreviewPed()
+    XSPhotos.clear()
     NetworkEndTutorialSession()
     DisplayRadar(true)
     ClearFocus()
@@ -68,6 +69,12 @@ local function showPed(character, fallbackGender)
     XSAnimation.play(previewPed, jobName)
     SetModelAsNoLongerNeeded(model)
     TriggerEvent('XS-MultiCharacter:client:characterPreviewed', character, previewPed)
+    local ped, key = previewPed, character and character.citizenid or 'new'
+    CreateThread(function()
+        Wait(700)
+        if token ~= previewToken or ped ~= previewPed then return end
+        XSPhotos.capture(key, ped, function() return token == previewToken end)
+    end)
 end
 
 local function createCamera(coords, lookAt, interpolate)
@@ -229,12 +236,25 @@ exports('IsSelectingCharacter', function() return selectorOpen end)
 
 RegisterNetEvent('XS-MultiCharacter:client:list', function(payload)
     characters = payload.characters or {}
+    local forUi = {}
     for _, character in ipairs(characters) do
         if character.position and character.position.x and character.dossier and character.dossier.activity then
             character.dossier.activity.lastDistrict = GetLabelText(GetNameOfZone(character.position.x, character.position.y, character.position.z))
         end
+        local copy = {}
+        for key, value in pairs(character) do
+            if key ~= 'appearance' and key ~= 'position' then copy[key] = value end
+        end
+        forUi[#forUi + 1] = copy
     end
-    SendNUIMessage({ action = 'characters', characters = characters, slots = payload.slots or 1, kit = payload.kit })
+    SendNUIMessage({ action = 'characters', characters = forUi, slots = payload.slots or 1, kit = payload.kit })
+    if selectorOpen then XSPhotos.takeAll(characters) end
+end)
+
+RegisterNetEvent('XS-MultiCharacter:client:refocus', function()
+    if not selectorOpen then return end
+    SetNuiFocus(true, true)
+    SendNUIMessage({ action = 'ready' })
 end)
 
 RegisterNetEvent('XS-MultiCharacter:client:adminOpen', function()
@@ -248,8 +268,17 @@ RegisterNetEvent('XS-MultiCharacter:client:adminData', function(payload)
         players = payload.players or {},
         maximum = payload.maximum,
         locale = XSLocaleTable(),
-        ui = Config.Client.UI
+        ui = Config.Client.UI,
+        characters = Config.Characters
     })
+end)
+
+RegisterNetEvent('XS-MultiCharacter:client:adminRecords', function(payload)
+    SendNUIMessage({ action = 'adminRecords', title = payload.title, rows = payload.rows or {} })
+end)
+
+RegisterNetEvent('XS-MultiCharacter:client:adminEdited', function(payload)
+    SendNUIMessage({ action = 'adminEdited', ok = payload.ok == true, message = payload.message, row = payload.row })
 end)
 
 RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, position, isNew, playerData, allowedSpawns)
@@ -260,6 +289,7 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
         clothingHandledElsewhere = false
         fadeOut()
         removeScene()
+        XSArrival.play(playerData)
         local ped = PlayerPedId()
         SetEntityVisible(ped, true, false)
         FreezeEntityPosition(ped, false)
@@ -343,6 +373,23 @@ end)
 
 RegisterNUICallback('adminSetSlots', function(data, cb)
     TriggerServerEvent('XS-MultiCharacter:server:adminSetSlots', data.license, data.slots, data.reset == true)
+    cb('ok')
+end)
+
+RegisterNUICallback('adminSearch', function(data, cb)
+    TriggerServerEvent('XS-MultiCharacter:server:adminSearch', data.query)
+    cb('ok')
+end)
+
+RegisterNUICallback('adminCharacters', function(data, cb)
+    TriggerServerEvent('XS-MultiCharacter:server:adminCharacters', data.source or data.license, data.name)
+    cb('ok')
+end)
+
+RegisterNUICallback('adminEdit', function(data, cb)
+    TriggerServerEvent('XS-MultiCharacter:server:adminEdit', {
+        citizenid = data.citizenid, firstname = data.firstname, lastname = data.lastname, birthdate = data.birthdate
+    })
     cb('ok')
 end)
 

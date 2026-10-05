@@ -30,10 +30,7 @@ const FREE_TEXT = [
 //
 // A checker that always reports the same known-safe lines is one people learn
 // to ignore, and then it stops catching the real ones too. Each entry says why.
-const ALLOW = [
-  { match: "${config.ui.showJobGrade ? dossierField(text('jobGrade'), dossier.job?.grade) : ''}",
-    why: "dossierField() escapes both of its arguments" },
-];
+const ALLOW = [];
 
 const root = process.argv[2] || 'html/js';
 

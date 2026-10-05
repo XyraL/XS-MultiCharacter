@@ -1,7 +1,7 @@
 local function replaceTokens(value, replacements)
     if not replacements then return value end
     for key, replacement in pairs(replacements) do
-        value = value:gsub('%%{' .. key .. '}', tostring(replacement))
+        value = value:gsub('%%{' .. key .. '}', (tostring(replacement):gsub('%%', '%%%%')))
     end
     return value
 end
