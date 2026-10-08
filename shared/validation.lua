@@ -42,6 +42,9 @@ function XSValidation.run(side)
     end
     if side == 'client' then
         add(errors, Config.Client and Config.Client.Scene ~= nil, 'config/client.lua did not load.')
+        local scene = Config.Client and Config.Client.Scene or {}
+        add(errors, type(scene.maleModel) == 'number' and type(scene.femaleModel) == 'number',
+            'Config.Client.Scene maleModel and femaleModel need backticks around the name, like `mp_m_freemode_01`.')
         if Config.Client and Config.Client.Integrations then
             add(errors, allowedAppearance[Config.Client.Integrations.appearance], 'The client appearance integration is not valid.')
         else

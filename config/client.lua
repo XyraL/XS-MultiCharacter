@@ -4,8 +4,8 @@ Config.Client.Scene = {
     coords = vec4(-811.7346, 175.2027, 76.7454, 107.3739),
     camera = vec3(-813.5, 174, 78),
     cameraLookAt = vec3(-811.7346, 175.2027, 76.7454),
-    maleModel = mp_m_freemode_01,
-    femaleModel = mp_f_freemode_01,
+    maleModel = `mp_m_freemode_01`,
+    femaleModel = `mp_f_freemode_01`,
     time = { hour = 12, minute = 0 },
     weather = 'EXTRASUNNY',
     cameraTransitionMs = 700
