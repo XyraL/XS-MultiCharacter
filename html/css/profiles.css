@@ -1,0 +1,159 @@
+:root {
+    --accent: #ff7ad9;
+    --accent-rgb: 255, 122, 217;
+    --accent2: #8b7bff;
+    --accent2-rgb: 139, 123, 255;
+    --grad: linear-gradient(135deg, var(--accent), var(--accent2));
+    --glass: rgba(18, 18, 26, .55);
+    --edge: rgba(255, 255, 255, .16);
+    --text: #fff;
+    --muted: rgba(255, 255, 255, .62);
+    --faint: rgba(255, 255, 255, .3);
+    --danger: #ff4d5e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { padding: 0; border: 0; background: none; cursor: pointer; }
+button:disabled { cursor: default; }
+.hidden { display: none !important; }
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.silhouette { display: block; width: 100%; height: 100%; }
+
+#app { position: fixed; inset: 0; }
+.view, .overlay { position: absolute; inset: 0; }
+.shade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(5,5,10,.55) 100%), linear-gradient(0deg, rgba(5,5,10,.75) 0, transparent 38%); }
+
+.glass { background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)), var(--glass); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 24px 60px rgba(0,0,0,.35); }
+
+.pill { position: absolute; top: 40px; z-index: 2; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 18px; border-radius: 999px; font: 600 14px/1 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+.pill.brand { left: 48px; }
+.pill.status { right: 48px; color: var(--muted); }
+.pill i { width: 1px; height: 18px; background: var(--edge); }
+.pill b { font-weight: 800; letter-spacing: .08em; }
+.pill .muted { color: var(--muted); font-weight: 500; }
+.logo { width: 22px; height: 22px; border-radius: 7px; background: var(--grad); box-shadow: 0 0 18px rgba(var(--accent-rgb), .5); }
+
+.rail { position: absolute; left: 48px; right: 48px; bottom: 30px; display: flex; overflow-x: auto; overflow-y: hidden; padding: 30px 8px 14px; scrollbar-width: none; }
+.rail::-webkit-scrollbar { display: none; }
+.rail-inner { display: flex; gap: 16px; align-items: flex-end; margin: 0 auto; }
+
+.card { position: relative; flex: none; width: 178px; height: 236px; padding: 1px; border-radius: 24px; background: rgba(255,255,255,.16); text-align: left; transition: width .2s ease, height .2s ease, transform .2s ease, box-shadow .2s ease, opacity .2s; outline: 0; }
+.card .inner { position: relative; display: block; height: 100%; border-radius: 23px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01)), rgba(18,18,26,.82); }
+.card:not(.sel):not(.new) { opacity: .84; }
+.card:not(.sel):hover, .card:not(.sel):focus-visible { opacity: 1; transform: translateY(-4px); }
+.card.sel { width: 196px; height: 262px; padding: 2px; background: var(--grad); transform: translateY(-8px); box-shadow: 0 0 40px rgba(var(--accent-rgb), .35), 0 26px 60px rgba(0,0,0,.45); }
+.card.sel .inner { border-radius: 22px; background: #15151d; }
+.card .photo { display: block; height: 150px; overflow: hidden; background: linear-gradient(180deg, #2a2a38, #1a1a24); color: rgba(255,255,255,.14); transition: height .2s ease; }
+.card.sel .photo { height: 168px; }
+.card .photo img, .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.card .fade { position: absolute; left: 0; right: 0; top: 96px; height: 56px; background: linear-gradient(0deg, rgba(18,18,26,.95), transparent); transition: top .2s ease; }
+.card.sel .fade { top: 114px; }
+.card .seat { position: absolute; left: 12px; top: 12px; padding: 5px 9px; border-radius: 999px; background: rgba(0,0,0,.45); font: 700 11px/1 'Plus Jakarta Sans', sans-serif; color: rgba(255,255,255,.85); }
+.card .body { display: block; padding: 12px 16px; }
+.card .body b { display: block; font: 700 15px/1.2 'Plus Jakarta Sans', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .body small { display: block; margin-top: 4px; font: 500 12px/1.2 'Plus Jakarta Sans', sans-serif; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.new { background: transparent; border: 1px dashed rgba(255,255,255,.26); padding: 0; }
+.card.new .inner { display: grid; place-items: center; align-content: center; gap: 12px; background: rgba(18,18,26,.45); text-align: center; }
+.card.new:hover, .card.new:focus-visible { border-color: rgba(var(--accent-rgb), .8); }
+.plus { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto; border-radius: 50%; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px var(--edge); }
+.plus .icon { width: 24px; height: 24px; }
+.card.new b { font: 700 15px/1.2 'Plus Jakarta Sans', sans-serif; }
+.card.new small { font: 500 12px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+
+.panel { position: absolute; right: 48px; top: 112px; width: 400px; max-height: calc(100% - 440px); display: flex; flex-direction: column; padding: 26px; border-radius: 30px; }
+.p-head { display: flex; gap: 16px; align-items: center; }
+.avatar { flex: none; width: 64px; height: 64px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #2a2a38, #1a1a24); color: rgba(255,255,255,.14); box-shadow: 0 0 0 2px rgba(255,255,255,.2); }
+.p-head h2 { margin: 0; font: 800 28px/1.1 'Plus Jakarta Sans', sans-serif; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.08); font: 600 11.5px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); }
+.rows { flex: 1; min-height: 0; margin-top: 22px; border-radius: 20px; background: rgba(0,0,0,.18); overflow-y: auto; scrollbar-width: none; }
+.rows::-webkit-scrollbar { display: none; }
+.rows.more { -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent); mask-image: linear-gradient(180deg, #000 80%, transparent); }
+.row { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-top: 1px solid rgba(255,255,255,.06); color: var(--muted); }
+.row:first-child { border-top: 0; }
+.row span { flex: 1; min-width: 0; font: 500 14px/1 'Plus Jakarta Sans', sans-serif; }
+.row b { max-width: 210px; font: 700 15px/1.2 'Plus Jakarta Sans', sans-serif; color: var(--text); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acts { display: flex; gap: 10px; margin-top: 20px; flex: none; }
+.btn { flex: 1; height: 58px; border-radius: 999px; background: #fff; color: #0c0c12; font: 800 17px/1 'Plus Jakarta Sans', sans-serif; box-shadow: 0 14px 34px rgba(0,0,0,.35); transition: transform .15s, opacity .2s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:disabled { opacity: .45; box-shadow: none; }
+.icon-btn { flex: none; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; color: #ff8a9b; }
+.icon-btn .icon { width: 20px; height: 20px; }
+.icon-btn:hover { border-color: rgba(255,77,94,.6); }
+.ghost-btn { flex: none; height: 58px; padding: 0 22px; border-radius: 999px; color: var(--muted); font: 700 15px/1 'Plus Jakarta Sans', sans-serif; }
+.empty-note { margin: 0; font: 500 15px/1.6 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.panel h2.solo { margin: 0 0 10px; font: 800 30px/1.1 'Plus Jakarta Sans', sans-serif; letter-spacing: -.02em; }
+
+.form { position: absolute; left: 48px; top: 112px; width: 520px; padding: 30px; border-radius: 30px; }
+.form h2 { margin: 0; font: 800 34px/1.1 'Plus Jakarta Sans', sans-serif; letter-spacing: -.02em; }
+.form .sub { margin-top: 6px; font: 500 14px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.in { display: block; margin-top: 14px; padding: 12px 16px; border-radius: 18px; background: rgba(0,0,0,.24); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); cursor: text; }
+.in small { display: block; font: 600 11.5px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.in input { display: block; width: 100%; margin-top: 7px; padding: 0; border: 0; outline: 0; background: none; font: 600 19px/1.15 'Plus Jakarta Sans', sans-serif; color: var(--text); caret-color: var(--accent); }
+.in input::placeholder { color: rgba(255,255,255,.22); }
+.in:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+.in.bad { box-shadow: inset 0 0 0 2px var(--danger); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.three { display: grid; gap: 10px; }
+.segc { display: flex; margin-top: 14px; padding: 5px; border-radius: 999px; background: rgba(0,0,0,.24); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.segc button { flex: 1; padding: 13px 0; border-radius: 999px; font: 700 15px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); transition: background .15s, color .15s; }
+.segc button.on { background: #fff; color: #0c0c12; }
+.error { margin: 12px 0 0; font: 600 13px/1.4 'Plus Jakarta Sans', sans-serif; color: #ff8a9b; }
+
+.kitcard { position: absolute; right: 48px; top: 112px; width: 400px; padding: 26px; border-radius: 30px; }
+.label { font: 700 12px/1 'Plus Jakarta Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.money { margin-top: 12px; font: 800 52px/1.05 'Plus Jakarta Sans', sans-serif; letter-spacing: -.03em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.money-note { display: block; margin-top: 6px; font: 500 13px/1.4 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.tile { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px; border-radius: 18px; background: rgba(0,0,0,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
+.tile .ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,.08); }
+.tile .ic .icon { width: 19px; height: 19px; }
+.tile span.t { min-width: 0; }
+.tile b { display: block; font: 800 16px/1 'Plus Jakarta Sans', sans-serif; }
+.tile span.t span { display: block; margin-top: 4px; font: 500 12.5px/1.2 'Plus Jakarta Sans', sans-serif; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kitcard p { margin: 16px 0 0; font: 500 12.5px/1.5 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+
+.loc { position: relative; flex: none; width: 178px; height: 150px; padding: 16px; border-radius: 24px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; transition: width .2s ease, height .2s ease, transform .2s ease, background .2s, box-shadow .2s; outline: 0; }
+.loc:not(.sel):hover, .loc:not(.sel):focus-visible { transform: translateY(-4px); border-color: rgba(255,255,255,.3); }
+.loc .cat { display: inline-flex; align-items: center; gap: 7px; font: 700 11px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.loc .cat i { width: 8px; height: 8px; border-radius: 50%; }
+.loc b { display: block; font: 800 18px/1.15 'Plus Jakarta Sans', sans-serif; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.loc small { display: block; margin-top: 4px; font: 500 12px/1.2 'Plus Jakarta Sans', sans-serif; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loc.sel { width: 196px; height: 168px; transform: translateY(-8px); background: #fff; color: #0c0c12; border-color: transparent; box-shadow: 0 0 40px rgba(255,255,255,.25), 0 26px 60px rgba(0,0,0,.45); }
+.loc.sel .cat, .loc.sel small { color: #5c5c68; }
+.panel .k { font: 700 12px/1 'Plus Jakarta Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.panel h2.place { margin: 10px 0 0; font: 800 36px/1.05 'Plus Jakarta Sans', sans-serif; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.panel p.desc { margin: 10px 0 0; font: 500 15px/1.5 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+
+#deleteView { background: rgba(5,5,10,.7); }
+.alert { position: absolute; left: 50%; top: 50%; width: 460px; padding: 30px; border-radius: 32px; text-align: center; transform: translate(-50%, -50%); }
+.alert .bad { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: rgba(255,77,94,.16); color: #ff6b7a; }
+.alert .bad .icon { width: 28px; height: 28px; }
+.alert h2 { margin: 18px 0 0; font: 800 26px/1.2 'Plus Jakarta Sans', sans-serif; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.alert p { margin: 10px 0 0; font: 500 15px/1.5 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.alert .in { margin-top: 20px; text-align: left; }
+.alert .in input { text-transform: uppercase; letter-spacing: .08em; }
+.alert .in:focus-within { box-shadow: inset 0 0 0 2px var(--danger); }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.split button { height: 54px; border-radius: 999px; font: 800 16px/1 'Plus Jakarta Sans', sans-serif; }
+.split .cancel { background: rgba(255,255,255,.1); color: #fff; }
+.split .delete { background: var(--danger); color: #fff; transition: opacity .2s; }
+.split .delete:disabled { opacity: .4; }
+
+.arrival { position: fixed; inset: 0; pointer-events: none; }
+.letterbox { position: absolute; left: 0; right: 0; height: 9%; background: #000; transform: scaleY(0); transition: transform .8s ease; }
+.letterbox.top { top: 0; transform-origin: top; }
+.letterbox.bottom { bottom: 0; transform-origin: bottom; }
+.arrival.play .letterbox { transform: scaleY(1); }
+.arr-card { position: absolute; left: 64px; bottom: 140px; width: 620px; padding: 28px 30px; border-radius: 30px; opacity: 0; transform: translateY(30px); transition: opacity .8s ease 1.2s, transform .8s ease 1.2s; }
+.arrival.play .arr-card { opacity: 1; transform: none; }
+.arr-card .label { display: flex; align-items: center; gap: 10px; }
+.arr-card .label i { width: 8px; height: 8px; border-radius: 50%; background: var(--grad); box-shadow: 0 0 12px rgba(var(--accent-rgb), .7); }
+.arr-card h2 { margin: 14px 0 0; font: 800 44px/1.05 'Plus Jakarta Sans', sans-serif; letter-spacing: -.03em; }
+.arr-card h2 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.arr-card p { margin: 12px 0 0; font: 500 15px/1.5 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+.arr-skip { position: absolute; right: 64px; bottom: calc(9% + 22px); top: auto; opacity: 0; transition: opacity .6s ease 1s; }
+.arrival.play .arr-skip { opacity: 1; }

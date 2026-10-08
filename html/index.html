@@ -4,45 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Caveat:wght@600;700&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/passport.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/profiles.css">
     <link rel="stylesheet" href="css/admin.css">
     <title>XS-MultiCharacter</title>
 </head>
 <body>
-    <svg class="defs" width="0" height="0" aria-hidden="true">
-        <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="noise"/>
-            <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.1 1.55" result="speck"/>
-            <feComposite in="SourceGraphic" in2="speck" operator="in" result="inked"/>
-            <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="wobble"/>
-            <feDisplacementMap in="inked" in2="wobble" scale="3" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-    </svg>
-
     <main id="app" class="hidden">
         <div class="shade" id="shade"></div>
-        <header class="brand" id="brand"></header>
+        <header class="pill glass brand" id="brand"></header>
+        <div class="pill glass status" id="status"></div>
 
         <section id="selectView" class="view hidden">
-            <div class="manifest">
-                <div class="eyebrow" id="manifestLabel"></div>
-                <h1 class="h1" id="yourCharacters"></h1>
-                <div class="count" id="count"></div>
-                <div class="passes" id="passes"></div>
-            </div>
-            <div class="passport" id="passport"></div>
+            <aside class="panel glass" id="details"></aside>
+            <div class="rail" id="cards"></div>
         </section>
 
         <section id="createView" class="view hidden">
-            <form class="app-form" id="createForm" autocomplete="off"></form>
-            <div class="customs-wrap" id="customs"></div>
+            <form class="form glass" id="createForm" autocomplete="off"></form>
+            <aside class="kitcard glass" id="kit"></aside>
         </section>
 
         <section id="spawnView" class="view hidden">
-            <div class="spawn-head" id="spawnHead"></div>
-            <div class="board" id="board"></div>
-            <div class="bpass-wrap" id="boardingPass"></div>
+            <aside class="panel glass" id="destination"></aside>
+            <div class="rail" id="places"></div>
         </section>
 
         <section id="deleteView" class="overlay hidden"></section>
@@ -52,7 +37,7 @@
 
     <section id="admin" class="admin hidden"></section>
 
-    <script src="js/draw.js"></script>
+    <script src="js/icons.js"></script>
     <script src="js/app.js"></script>
     <script src="js/admin.js"></script>
 </body>

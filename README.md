@@ -16,14 +16,14 @@
 
 ---
 
-XS-MultiCharacter turns character selection into passport control. Every character is a boarding pass with their photo on it, and the one you pick opens as a real passport: stamps for their job, time in the city and money, a signature, and a machine-readable strip along the bottom.
+XS-MultiCharacter is a clean, modern character screen. Every character is a card with their photo on it, taken from their own ped, and the one you pick lifts out of the row while a glass panel shows their job, money, playtime and where they were last seen.
 
-New characters fill in a passport application, with a customs declaration showing what they will start with, then land at the airport in a short arrival scene. Spawning is a split-flap departures board, and the camera flies to each destination as you point at it.
+New characters get a simple form with the starter kit laid out next to it, then land at the airport in a short arrival scene. Spawning uses the same cards for places, and the camera flies to each one as you pick it.
 
 ## Features
 
 - Qbox and QBCore support
-- Passport-themed character, creation, spawn and delete screens
+- Modern card-based character, creation, spawn and delete screens
 - A photo of every character, taken from their own ped
 - Starter kit for new characters: cash, bank money and any items
 - Short arrival scene for brand new characters, skippable
@@ -31,7 +31,7 @@ New characters fill in a passport application, with a customs declaration showin
 - Saved appearance previews for illenium-appearance, fivem-appearance, and qb-clothing
 - Remembers a ped a character was put in, without adding a ped picker
 - Character animations with job-specific presets
-- Passport details with support for fields from other resources
+- Character details with support for fields from other resources
 - Cinematic spawn cameras
 - Last location support
 - Per-character spawn permissions
@@ -73,8 +73,8 @@ It creates its three small tables automatically by default. If you turn automati
 ## Where everything is
 
 - `config/shared.lua` has character rules, first-time setup, and spawn locations.
-- `config/client.lua` has the scene, cameras, photos, the arrival scene, animations, integrations, and the passport look.
-- `config/server.lua` has slots, the starter kit, the appearance table, passport fields, and cooldowns.
+- `config/client.lua` has the scene, cameras, photos, the arrival scene, animations, integrations, and the accent colours.
+- `config/server.lua` has slots, the starter kit, the appearance table, detail fields, and cooldowns.
 - `locales/en.lua` has every player-facing line used by the script.
 - `integrations/` contains the small adapters. This is the place to edit for a renamed or custom resource.
 
@@ -95,25 +95,19 @@ Categories are defined above the spawn locations in `config/shared.lua`. Give a 
 
 Empty categories are hidden automatically. Last location has its own configurable category, and locations without a category use `defaultCategory`.
 
-## The passport
+## The look
 
-The look is set in `Config.Client.UI`:
+The name in the top corner and the accent colours are in `Config.Client.UI`:
 
 ```lua
 title = 'XYRAL',
-subtitle = 'PASSPORT OFFICE',
-passport = {
-    issuer = 'STATE OF SAN ANDREAS',
-    code = 'SAN',
-    cover = '#14213d',
-    foil = '#d6b46a',
-    secondLanguage = true
-}
+accent = '#ff7ad9',
+accentTo = '#8b7bff'
 ```
 
-`cover` colours the booklet and the buttons, `foil` the gold print. `secondLanguage` adds the small Spanish label under each field the way real passports print two languages; change the wording in `locales/` or set it to `false`.
+The two accent colours make the gradient on the picked card, the logo and the starter cash. Put the same colour in both for a flat accent.
 
-The `show...` options in the same table still hide fields you do not want on the passport. Hidden fields are left out of the machine-readable strip as well.
+The `show...` options in the same table hide fields you do not want in the details panel.
 
 ## Starter kit
 
@@ -134,17 +128,17 @@ A list of names uses the first one your inventory has, so one kit works on ox_in
 
 The money is on top of the framework's normal starting money. The framework's own starter items are handed out by its own character screen, which this replaces, so add anything else you want new players to have here.
 
-The create screen shows the kit as a customs declaration, so players see what they are getting before they sign.
+The create screen shows the kit next to the form, so players see what they are getting before they make the character.
 
 ## Character photos
 
-Each character's photo is taken from their own ped while the character screen is open: hidden copies stand behind the camera for the boarding passes, and the character you are looking at is photographed live. Nothing is stored. Turn it off in `Config.Client.Photos`.
+Each character's photo is taken from their own ped while the character screen is open: hidden copies stand behind the camera for the cards, and the character you are looking at is photographed live. Nothing is stored. Turn it off in `Config.Client.Photos`.
 
 ## First arrival
 
-A brand new character lands in a short arrival scene before the apartment and clothing screens: a couple of camera shots over the airport while their passport is stamped ADMITTED. Players can skip it with Space.
+A brand new character lands in a short arrival scene before the apartment and clothing screens: a couple of camera shots over the airport with a welcome card. Players can skip it with Space.
 
-The shots, the time of day and the place on the stamp are in `Config.Client.Arrival`. Each shot glides the camera from `from` to `to` while looking at `lookAt`. Set `enabled = false` to go straight to the apartment screen.
+The shots, the time of day and the place on the welcome card are in `Config.Client.Arrival`. Each shot glides the camera from `from` to `to` while looking at `lookAt`. Set `enabled = false` to go straight to the apartment screen.
 
 ## Character activity
 
@@ -301,11 +295,11 @@ byJob = {
 
 Presets can use a scenario or an animation dictionary. Unknown jobs use the default preset.
 
-## Passport fields
+## Detail fields
 
-The passport shows identity, occupation, position, affiliation, phone, nationality, account number, and money. Display toggles are in the client config.
+The details panel shows occupation, position, affiliation, phone, nationality, account number, money, playtime, and where the character was last seen. Display toggles are in the client config.
 
-Extra fields from the server config or other resources are handwritten under Observations on the visa page.
+Extra fields from the server config or other resources are added as rows at the bottom of the panel.
 
 Simple metadata fields can be added in the server config:
 
@@ -378,7 +372,7 @@ These are local lifecycle events for integrations. The resource does not expose 
 The default flow is:
 
 ```text
-Passport application -> Arrival -> Apartment -> Clothing
+New character -> Arrival -> Apartment -> Clothing
 ```
 
 The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so it leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.

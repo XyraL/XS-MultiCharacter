@@ -47,11 +47,12 @@ function XSValidation.run(side)
         else
             errors[#errors + 1] = 'Config.Client.Integrations is missing.'
         end
-        local passport = Config.Client and Config.Client.UI and Config.Client.UI.passport
-        if passport == nil then
-            warnings[#warnings + 1] = 'Config.Client.UI.passport is missing, so the passport uses its default look.'
-        else
-            add(errors, type(passport.code) == 'string' and passport.code:match('^%a%a%a$') ~= nil, 'Config.Client.UI.passport.code must be three letters.')
+        local uiConfig = Config.Client and Config.Client.UI or {}
+        for _, key in ipairs({ 'accent', 'accentTo' }) do
+            local colour = uiConfig[key]
+            if colour ~= nil and not (type(colour) == 'string' and (colour:match('^#%x%x%x$') or colour:match('^#%x%x%x%x%x%x$'))) then
+                warnings[#warnings + 1] = ('Config.Client.UI.%s should be a colour like #ff7ad9, so the default is used.'):format(key)
+            end
         end
         local arrival = Config.Client and Config.Client.Arrival
         if arrival and arrival.enabled then

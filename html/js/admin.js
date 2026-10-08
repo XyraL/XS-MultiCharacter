@@ -10,7 +10,7 @@ const Admin = (() => {
     function build() {
         root().innerHTML = `<div class="ad-card">
             <header class="ad-head">
-                <div class="ad-brand">${Draw.seal(46, sealRing())}<div><small>${esc(t('adminEyebrow'))}</small><h2>${esc(t('adminTitle'))}</h2></div></div>
+                <div class="ad-brand"><span class="logo"></span><div><small>${esc(t('adminEyebrow'))}</small><h2>${esc(t('adminTitle'))}</h2></div></div>
                 <button type="button" class="ad-close" id="adClose" aria-label="${esc(t('adminClose'))}">×</button>
             </header>
             <nav class="ad-tabs">

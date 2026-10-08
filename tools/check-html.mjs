@@ -15,7 +15,7 @@ const FILE = path.resolve(HERE, '..', 'html', 'index.html');
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 
 // Inside #app, because the player screens are shown and hidden with it.
-const INSIDE_APP = ['manifest', 'passport', 'app-form', 'board'];
+const INSIDE_APP = ['rail', 'panel', 'form', 'kitcard'];
 
 const blank = (s) => s.replace(/[^\n]/g, ' ');
 const raw = readFileSync(FILE, 'utf8');

@@ -89,20 +89,11 @@ Config.Client.Integrations = {
 
 Config.Client.UI = {
     title = 'XYRAL',
-    subtitle = 'PASSPORT OFFICE',
 
-    passport = {
-        -- Printed on the cover, the seal and the machine-readable strip.
-        issuer = 'STATE OF SAN ANDREAS',
-        code = 'SAN', -- three letters
-
-        cover = '#14213d',
-        foil = '#d6b46a',
-
-        -- The smaller second-language labels under each field. Change the
-        -- wording in locales/, or set this to false for one language only.
-        secondLanguage = true
-    },
+    -- The glow on the picked card, the logo and the starter cash. The two
+    -- colours make a gradient; put the same colour twice for a flat one.
+    accent = '#ff7ad9',
+    accentTo = '#8b7bff',
 
     showCash = true,
     showBank = true,
@@ -117,21 +108,21 @@ Config.Client.UI = {
     currency = '$'
 }
 
--- Every character's photo is taken from their own ped and shown on their
--- boarding pass and passport. Turn it off and the photo boxes stay blank.
+-- Every character's photo is taken from their own ped and shown on their card
+-- and in the details panel. Turn it off and the cards show a silhouette.
 Config.Client.Photos = {
     enabled = true,
 
-    -- A see-through background, like a real passport photo. When the game
-    -- will not give one, the normal photo is used instead.
+    -- A see-through background behind the face. When the game will not give
+    -- one, the normal photo is used instead.
     transparent = true
 }
 
 -- A short arrival scene played once for a brand new character, right after
--- the passport application and before the apartment or clothing screens.
+-- they are made and before the apartment or clothing screens.
 Config.Client.Arrival = {
     enabled = true,
-    place = 'Los Santos International', -- printed on the ADMITTED stamp
+    place = 'Los Santos International', -- shown on the welcome card
     skipControl = 22, -- Space. Change arrivalSkip in locales/ to match.
 
     -- The camera glides from `from` to `to` while looking at `lookAt`. Add,

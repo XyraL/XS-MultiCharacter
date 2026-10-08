@@ -4,7 +4,7 @@ lua54 'yes'
 
 name 'XS-MultiCharacter'
 author 'XyraL'
-description 'A passport-themed multicharacter and spawn flow for Qbox and QBCore.'
+description 'A modern multicharacter and spawn flow for Qbox and QBCore.'
 version '3.0.0'
 
 shared_scripts {
@@ -36,9 +36,9 @@ ui_page 'html/index.html'
 
 files {
     'html/index.html',
-    'html/css/passport.css',
+    'html/css/profiles.css',
     'html/css/admin.css',
-    'html/js/draw.js',
+    'html/js/icons.js',
     'html/js/app.js',
     'html/js/admin.js',
     'sql/*.sql'
