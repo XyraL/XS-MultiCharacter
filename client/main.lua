@@ -208,13 +208,17 @@ if firstCharacterEvent then
     end)
 end
 
+local function anotherScreenUp()
+    return IsNuiFocused() or GetRenderingCam() ~= -1
+end
+
 local function openClothingWhenClear()
     local clothing = Config.FirstCharacter.clothing
     CreateThread(function()
         Wait(clothing.openDelayMs or 0)
-        if IsNuiFocused() then
+        if anotherScreenUp() then
             local clear = GetGameTimer() + ((clothing.waitForOtherMenusSeconds or 0) * 1000)
-            while waitingForClothing and IsNuiFocused() and GetGameTimer() < clear do Wait(150) end
+            while waitingForClothing and anotherScreenUp() and GetGameTimer() < clear do Wait(150) end
             local handoff = GetGameTimer() + ((clothing.handoffSeconds or 0) * 1000)
             while waitingForClothing and not clothingHandledElsewhere and GetGameTimer() < handoff do Wait(150) end
         end

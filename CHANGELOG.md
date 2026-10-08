@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1
+
+- New characters on Qbox get the qbx_properties apartment picker again, and the clothing editor waits until an apartment is picked
+- The clothing editor also waits for any other screen that uses its own camera
+- The arrival camera no longer flies into the airport. A shot that would pass through a building is raised until it is clear
+
 ## 3.0.0
 
 New look, a starter kit, and a few new things for staff.

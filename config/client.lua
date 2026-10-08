@@ -82,7 +82,7 @@ Config.Client.CinematicSpawn = {
 
 Config.Client.Integrations = {
     appearance = 'auto', -- auto, illenium-appearance, fivem-appearance, qb-clothing, none
-    apartments = 'auto', -- auto, qbx, qb, event, none
+    apartments = 'auto', -- auto, qbx_properties, qbx, qb, event, none
     weather = 'auto', -- auto, qb-weathersync, qbx, cd_easytime, native, none
     housing = 'auto' -- auto, qb-houses, qbx_properties, event, none
 }
@@ -126,7 +126,8 @@ Config.Client.Arrival = {
     skipControl = 22, -- Space. Change arrivalSkip in locales/ to match.
 
     -- The camera glides from `from` to `to` while looking at `lookAt`. Add,
-    -- remove or move shots freely.
+    -- remove or move shots freely. A shot that would pass through the map is
+    -- raised until it is clear.
     shots = {
         {
             from = vec3(-1700.0, -3700.0, 170.0),
@@ -136,9 +137,9 @@ Config.Client.Arrival = {
             fov = 50.0
         },
         {
-            from = vec3(-1064.0, -2778.0, 32.0),
-            to = vec3(-1050.0, -2756.0, 22.0),
-            lookAt = vec3(-1035.7, -2731.9, 14.0),
+            from = vec3(-1010.0, -2690.0, 72.0),
+            to = vec3(-1024.0, -2712.0, 52.0),
+            lookAt = vec3(-1040.0, -2740.0, 16.0),
             durationMs = 5500,
             fov = 45.0
         }

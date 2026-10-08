@@ -41,11 +41,12 @@ Config.FirstCharacter = {
     },
     apartments = {
         enabled = true,
-        mode = 'auto', -- auto, qbx, qb, event, none
+        mode = 'auto', -- auto, qbx_properties, qbx, qb, event, none
         event = '',
 
-        -- Auto only knows qbx_apartments and qb-apartments. Name your resource
-        -- here if it is a renamed fork.
+        -- Auto knows qbx_properties (and follows its startingApartment setting in
+        -- qbx_core), qbx_apartments and qb-apartments. Name your resource here if
+        -- it is a renamed fork.
         resource = '',
 
         -- Standard Qbox/QBCore apartments open first-character clothing after
