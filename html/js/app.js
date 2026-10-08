@@ -621,6 +621,8 @@ function closeAll() {
 function onLoading(config) {
     state.config = config || { ui: {}, characters: {}, locale: {} };
     state.busy = false;
+    state.selected = null;
+    state.playing = null;
     applyTheme();
     $('#cards').innerHTML = '';
     $('#details').innerHTML = '';
