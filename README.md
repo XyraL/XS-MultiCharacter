@@ -51,6 +51,7 @@ New characters get a simple form with the starter kit laid out next to it, then 
 - `qbx_core` or `qb-core`
 - An appearance resource if you want saved clothing and first-character setup
 - `qbx_apartments` or `qb-apartments` if you want starting apartments
+- `screenshot-basic` for sharp character photos (optional)
 
 ## Install
 
@@ -132,7 +133,11 @@ The create screen shows the kit next to the form, so players see what they are g
 
 ## Character photos
 
-Each character's photo is taken from their own ped while the character screen is open: hidden copies stand behind the camera for the cards, and the character you are looking at is photographed live. Nothing is stored. Turn it off in `Config.Client.Photos`.
+Each character's photo is taken from their own ped while the character screen opens. Nothing is stored.
+
+With `screenshot-basic` running, each character gets a close-up camera photo behind a short loading screen, about half a second per character. `distance` and `fov` in `Config.Client.Photos` change the framing.
+
+Without it, or with `camera = false`, the photos come from the game's built-in headshot, which is small and looks soft on large screens. Turn photos off completely with `enabled = false`.
 
 ## First arrival
 

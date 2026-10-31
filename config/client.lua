@@ -113,8 +113,15 @@ Config.Client.UI = {
 Config.Client.Photos = {
     enabled = true,
 
-    -- A see-through background behind the face. When the game will not give
-    -- one, the normal photo is used instead.
+    -- Sharp photos taken with a camera while a short loading screen covers the
+    -- scene. Needs screenshot-basic running. Without it, or with this off, the
+    -- game's small built-in headshot is used instead.
+    camera = true,
+    distance = 1.0, -- metres from the face
+    fov = 32.0, -- lower is closer
+
+    -- Built-in headshots only: a see-through background behind the face. When
+    -- the game will not give one, the normal headshot is used instead.
     transparent = true
 }
 

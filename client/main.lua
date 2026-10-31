@@ -122,7 +122,8 @@ local function openCharacters()
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'loading',
-        config = { characters = Config.Characters, ui = Config.Client.UI, locale = XSLocaleTable() }
+        config = { characters = Config.Characters, ui = Config.Client.UI, locale = XSLocaleTable() },
+        cover = XSPhotos.cameraReady()
     })
     TriggerServerEvent('XS-MultiCharacter:server:list')
 end
@@ -251,7 +252,9 @@ RegisterNetEvent('XS-MultiCharacter:client:list', function(payload)
         end
         forUi[#forUi + 1] = copy
     end
+    if selectorOpen then XSPhotos.develop(characters, previewPed, previewCam) end
     SendNUIMessage({ action = 'characters', characters = forUi, slots = payload.slots or 1, kit = payload.kit })
+    SendNUIMessage({ action = 'cover', show = false })
     if selectorOpen then XSPhotos.takeAll(characters) end
 end)
 

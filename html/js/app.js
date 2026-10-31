@@ -37,7 +37,7 @@ function t(key, vars) {
 
 function fit() {
     const scale = Math.min(window.innerHeight / 1080, window.innerWidth / 1700);
-    ['#app', '#arrival', '#admin'].forEach((selector) => { $(selector).style.zoom = scale; });
+    ['#app', '#cover', '#arrival', '#admin'].forEach((selector) => { $(selector).style.zoom = scale; });
 }
 
 function hexRgb(hex) {
@@ -178,6 +178,42 @@ function setPhoto(key, url) {
         holder.classList.toggle('has-photo', !!url);
     });
     bindPhotos(document);
+}
+
+function develop(key, image) {
+    if (!key || typeof image !== 'string' || !image.startsWith('data:image/')) return;
+    const picture = new Image();
+    picture.onload = () => {
+        const width = picture.naturalWidth;
+        const height = picture.naturalHeight;
+        const side = Math.min(width, height);
+        if (!side) return;
+        const size = Math.min(640, side);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(picture, (width - side) / 2, (height - side) / 2, side, side, 0, 0, size, size);
+        setPhoto(key, canvas.toDataURL('image/jpeg', 0.9));
+    };
+    picture.src = image;
+}
+
+let coverTimer = null;
+
+function setCover(show) {
+    const cover = $('#cover');
+    clearTimeout(coverTimer);
+    if (show) {
+        cover.innerHTML = `<div class="cover-in"><span class="logo"></span><b>${esc(ui().title)}</b><small>${esc(t('coverText'))}</small></div>`;
+        cover.classList.remove('hidden', 'out');
+        return;
+    }
+    if (cover.classList.contains('hidden')) return;
+    cover.classList.add('out');
+    coverTimer = setTimeout(() => cover.classList.add('hidden'), 400);
 }
 
 function renderPills() {
@@ -613,12 +649,14 @@ function hideArrival() {
 
 function closeAll() {
     $('#app').classList.add('hidden');
+    clearTimeout(coverTimer);
+    $('#cover').classList.add('hidden');
     closeDelete();
     state.busy = false;
     state.photos = {};
 }
 
-function onLoading(config) {
+function onLoading(config, cover) {
     state.config = config || { ui: {}, characters: {}, locale: {} };
     state.busy = false;
     state.selected = null;
@@ -628,6 +666,7 @@ function onLoading(config) {
     $('#details').innerHTML = '';
     $('#app').classList.remove('hidden');
     showView('select');
+    if (cover) setCover(true);
 }
 
 function onCharacters(data) {
@@ -660,9 +699,11 @@ function moveSpawn(step) {
 window.addEventListener('message', ({ data }) => {
     if (!data || typeof data !== 'object') return;
     switch (data.action) {
-        case 'loading': onLoading(data.config); break;
+        case 'loading': onLoading(data.config, data.cover === true); break;
         case 'characters': onCharacters(data); break;
         case 'photo': setPhoto(data.key, data.url); break;
+        case 'develop': develop(data.key, data.image); break;
+        case 'cover': setCover(data.show === true); break;
         case 'spawns': renderSpawns(data.locations, data.categories); break;
         case 'ready':
             state.busy = false;
@@ -712,6 +753,8 @@ document.addEventListener('keydown', (event) => {
         return;
     }
     if ($('#app').classList.contains('hidden')) return;
+    const cover = $('#cover');
+    if (!cover.classList.contains('hidden') && !cover.classList.contains('out')) return;
     const typing = document.activeElement?.tagName === 'INPUT';
     if (state.view === 'delete') {
         if (event.key === 'Escape') closeDelete();

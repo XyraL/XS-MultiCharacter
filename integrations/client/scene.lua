@@ -3,13 +3,26 @@ XSSceneEffects = {}
 local orbitToken = 0
 local effectsActive = false
 
-function XSSceneEffects.enter()
-    effectsActive = true
+local function applyLook()
     local config = Config.Client.SceneEffects
     if config.timecycle then
         SetTimecycleModifier(config.timecycle)
         SetTimecycleModifierStrength(config.timecycleStrength or 0.35)
     end
+end
+
+function XSSceneEffects.clearLook()
+    ClearTimecycleModifier()
+end
+
+function XSSceneEffects.restoreLook()
+    if effectsActive then applyLook() end
+end
+
+function XSSceneEffects.enter()
+    effectsActive = true
+    local config = Config.Client.SceneEffects
+    applyLook()
     CreateThread(function()
         while effectsActive do
             if config.depthOfField.enabled then SetUseHiDof() end

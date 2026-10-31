@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.2
+
+- Character photos are sharp now. Each one is taken with a close-up camera while a short loading screen shows. This needs screenshot-basic; without it the old photos are used
+
+Nothing to change in your config.
+
 ## 3.0.1
 
 - New characters on Qbox get the qbx_properties apartment picker again, and the clothing editor waits until an apartment is picked

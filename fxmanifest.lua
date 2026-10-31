@@ -5,7 +5,7 @@ lua54 'yes'
 name 'XS-MultiCharacter'
 author 'XyraL'
 description 'A modern multicharacter and spawn flow for Qbox and QBCore.'
-version '3.0.1'
+version '3.0.2'
 
 shared_scripts {
     'config/shared.lua',

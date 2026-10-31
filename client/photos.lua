@@ -4,6 +4,8 @@ local shots = {}
 local clones = {}
 local runToken = 0
 local transparentFailed = false
+local cameraFailed = false
+local developing = false
 
 local function settings()
     return Config.Client.Photos or { enabled = false }
@@ -32,8 +34,15 @@ function XSPhotos.url(key)
     return shots[key] and shots[key].url or nil
 end
 
+function XSPhotos.cameraReady()
+    local options = settings()
+    return options.enabled == true and options.camera ~= false and not cameraFailed
+        and GetResourceState('screenshot-basic') == 'started'
+end
+
 function XSPhotos.capture(key, ped, isCurrent)
     if not settings().enabled or not key or not ped or not DoesEntityExist(ped) then return false end
+    if shots[key] and shots[key].camera then return false end
     local handle
     if settings().transparent and not transparentFailed then
         handle = headshot(ped, true, 2500)
@@ -42,6 +51,10 @@ function XSPhotos.capture(key, ped, isCurrent)
     if not handle then handle = headshot(ped, false, 5000) end
     if not handle then return false end
     if isCurrent and not isCurrent() then
+        UnregisterPedheadshot(handle)
+        return false
+    end
+    if shots[key] and shots[key].camera then
         UnregisterPedheadshot(handle)
         return false
     end
@@ -70,12 +83,11 @@ local function loadModel(model)
     return HasModelLoaded(model)
 end
 
-local function cloneFor(character, index, token)
+local function cloneFor(character, token, x, y, z, heading)
     local gender = character.charinfo and character.charinfo.gender or 0
     local model = XSAppearance.model(character.appearance, gender)
     if not loadModel(model) or token ~= runToken then return nil end
-    local x, y, z = hiddenSpot(index)
-    local ped = CreatePed(2, model, x, y, z, 0.0, false, true)
+    local ped = CreatePed(2, model, x + 0.0, y + 0.0, z + 0.0, (heading or 0.0) + 0.0, false, true)
     SetModelAsNoLongerNeeded(model)
     if not ped or ped == 0 then return nil end
     clones[#clones + 1] = ped
@@ -85,8 +97,126 @@ local function cloneFor(character, index, token)
     SetBlockingOfNonTemporaryEvents(ped, true)
     SetPedDefaultComponentVariation(ped)
     if character.appearance then XSAppearance.apply(ped, character.appearance) end
-    Wait(600)
     return ped
+end
+
+local function removeClone(ped)
+    if DoesEntityExist(ped) then DeleteEntity(ped) end
+    for index = #clones, 1, -1 do
+        if clones[index] == ped then table.remove(clones, index) end
+    end
+end
+
+local function screenshot()
+    local result = promise.new()
+    local done = false
+    local function finish(data)
+        if done then return end
+        done = true
+        result:resolve(data)
+    end
+    local ok = pcall(function()
+        exports['screenshot-basic']:requestScreenshot({ encoding = 'jpg', quality = 0.95 }, finish)
+    end)
+    if not ok then return nil end
+    SetTimeout(5000, function() finish(nil) end)
+    local data = Citizen.Await(result)
+    if type(data) ~= 'string' or data:sub(1, 11) ~= 'data:image/' then return nil end
+    return data
+end
+
+local function frame(camera, ped)
+    local options = settings()
+    local distance = (tonumber(options.distance) or 1.0) + 0.0
+    local head = GetPedBoneCoords(ped, 31086, 0.0, 0.0, 0.0)
+    local forward = GetEntityForwardVector(ped)
+    SetCamCoord(camera, head.x + forward.x * distance, head.y + forward.y * distance, head.z + 0.05)
+    PointCamAtCoord(camera, head.x, head.y, head.z + 0.02)
+    SetCamFov(camera, (tonumber(options.fov) or 32.0) + 0.0)
+    SetCamUseShallowDofMode(camera, true)
+    SetCamNearDof(camera, math.max(0.1, distance - 0.35))
+    SetCamFarDof(camera, distance + 0.45)
+    SetCamDofStrength(camera, 1.0)
+end
+
+local function waitFrames(count)
+    for _ = 1, count do Wait(0) end
+end
+
+function XSPhotos.develop(characters, scenePed, sceneCamera)
+    while developing do Wait(50) end
+    if not XSPhotos.cameraReady() then return end
+    local todo = {}
+    for _, character in ipairs(characters or {}) do
+        if character.citizenid and not (shots[character.citizenid] and shots[character.citizenid].camera) then
+            todo[#todo + 1] = character
+        end
+    end
+    if #todo == 0 then return end
+    developing = true
+    runToken = runToken + 1
+    local token = runToken
+
+    SendNUIMessage({ action = 'cover', show = true })
+    local fadeDeadline = GetGameTimer() + 3000
+    while not IsScreenFadedIn() and GetGameTimer() < fadeDeadline do Wait(0) end
+    Wait(150)
+
+    local spot = Config.Client.Scene.coords
+    local booth = {}
+    for _, character in ipairs(todo) do
+        if token ~= runToken then break end
+        local ped = cloneFor(character, token, spot.x, spot.y, spot.z - 1.0, spot.w)
+        if ped then booth[#booth + 1] = { key = character.citizenid, ped = ped } end
+    end
+    Wait(800)
+
+    local hidScene = scenePed and DoesEntityExist(scenePed) and IsEntityVisible(scenePed)
+    if hidScene then SetEntityVisible(scenePed, false, false) end
+    XSSceneEffects.clearLook()
+    local framing = true
+    CreateThread(function()
+        while framing do
+            HideHudAndRadarThisFrame()
+            ThefeedHideThisFrame()
+            SetUseHiDof()
+            Wait(0)
+        end
+    end)
+
+    local camera = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
+    RenderScriptCams(true, false, 0, true, true)
+    for _, entry in ipairs(booth) do
+        if token ~= runToken then break end
+        for _, other in ipairs(booth) do SetEntityVisible(other.ped, other == entry, false) end
+        waitFrames(2)
+        frame(camera, entry.ped)
+        waitFrames(3)
+        Wait(120)
+        local image = screenshot()
+        if not image then
+            cameraFailed = true
+            break
+        end
+        if token ~= runToken then break end
+        release(entry.key)
+        shots[entry.key] = { camera = true }
+        SendNUIMessage({ action = 'develop', key = entry.key, image = image })
+    end
+
+    framing = false
+    DestroyCam(camera, false)
+    if sceneCamera and DoesCamExist(sceneCamera) then
+        SetCamActive(sceneCamera, true)
+        RenderScriptCams(true, false, 0, true, true)
+    else
+        RenderScriptCams(false, false, 0, true, true)
+    end
+    XSSceneEffects.restoreLook()
+    if hidScene and DoesEntityExist(scenePed) then SetEntityVisible(scenePed, true, false) end
+    for _, entry in ipairs(booth) do removeClone(entry.ped) end
+    waitFrames(2)
+    developing = false
 end
 
 function XSPhotos.takeAll(characters)
@@ -99,9 +229,11 @@ function XSPhotos.takeAll(characters)
             if token ~= runToken then return end
             local key = character.citizenid
             if key and shots[key] then
-                SendNUIMessage({ action = 'photo', key = key, url = shots[key].url })
+                if shots[key].url then SendNUIMessage({ action = 'photo', key = key, url = shots[key].url }) end
             elseif key then
-                local ped = cloneFor(character, index, token)
+                local x, y, z = hiddenSpot(index)
+                local ped = cloneFor(character, token, x, y, z, 0.0)
+                if ped then Wait(600) end
                 if ped and token == runToken then
                     XSPhotos.capture(key, ped, function() return token == runToken end)
                 end

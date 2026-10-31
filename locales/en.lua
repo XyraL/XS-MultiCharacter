@@ -67,6 +67,8 @@ Locales.en = {
     lastLocation = 'Last location',
     lastLocationDescription = 'Pick up where you left off',
 
+    coverText = 'Getting your characters ready',
+
     arrivalLabel = 'Arrived',
     arrivalTitleStart = 'Welcome to',
     arrivalTitleCity = 'Los Santos',

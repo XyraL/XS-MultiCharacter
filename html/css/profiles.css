@@ -63,6 +63,14 @@ button:disabled { cursor: default; }
 .card.new b { font: 700 15px/1.2 'Plus Jakarta Sans', sans-serif; }
 .card.new small { font: 500 12px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
 
+.cover { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 45%, rgba(var(--accent2-rgb), .16), transparent 60%), #0a0a10; transition: opacity .35s ease; }
+.cover.out { opacity: 0; pointer-events: none; }
+.cover-in { display: grid; justify-items: center; gap: 14px; text-align: center; }
+.cover .logo { width: 46px; height: 46px; border-radius: 15px; animation: cover-pulse 1.6s ease-in-out infinite; }
+.cover b { font: 800 18px/1 'Plus Jakarta Sans', sans-serif; letter-spacing: .14em; }
+.cover small { font: 500 14px/1 'Plus Jakarta Sans', sans-serif; color: var(--muted); }
+@keyframes cover-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.88); opacity: .7; } }
+
 .panel { position: absolute; right: 48px; top: 112px; width: 400px; max-height: calc(100% - 440px); display: flex; flex-direction: column; padding: 26px; border-radius: 30px; }
 .p-head { display: flex; gap: 16px; align-items: center; }
 .avatar { flex: none; width: 64px; height: 64px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #2a2a38, #1a1a24); color: rgba(255,255,255,.14); box-shadow: 0 0 0 2px rgba(255,255,255,.2); }
