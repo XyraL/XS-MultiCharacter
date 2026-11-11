@@ -3,6 +3,7 @@ local slotProviders, dossierProviders, spawnProviders = {}, {}, {}
 local cooldowns = {}
 local awaitingSpawn = {}
 local spawnConfirmation = {}
+local enteringHome = {}
 local activeSessions = {}
 
 if not XSValidation.print('server') then return end
@@ -95,6 +96,15 @@ local function listed(values, wanted)
     return false
 end
 
+local function providersAllow(source, playerData, location)
+    for name, provider in pairs(spawnProviders) do
+        local ok, result = pcall(provider, source, playerData, location)
+        if not ok then print(('^3[%s] Spawn provider %s failed:^0 %s'):format(RESOURCE, name, result))
+        elseif result == false then return false end
+    end
+    return true
+end
+
 local function passesSpawnPermission(source, playerData, location)
     local permission = location.permission
     local checks = {}
@@ -119,12 +129,7 @@ local function passesSpawnPermission(source, playerData, location)
         end
     end
     if not allowed then return false end
-    for name, provider in pairs(spawnProviders) do
-        local ok, result = pcall(provider, source, playerData, location)
-        if not ok then print(('^3[%s] Spawn provider %s failed:^0 %s'):format(RESOURCE, name, result))
-        elseif result == false then return false end
-    end
-    return true
+    return providersAllow(source, playerData, location)
 end
 
 local function allowedSpawnIds(source, playerData)
@@ -134,6 +139,16 @@ local function allowedSpawnIds(source, playerData)
         if passesSpawnPermission(source, playerData, location) then ids[#ids + 1] = location.id end
     end
     return ids
+end
+
+local function allowedHomes(source, playerData)
+    local homes = {}
+    for _, home in ipairs(XSHomes.list(source)) do
+        if providersAllow(source, playerData, home) then
+            homes[#homes + 1] = { id = home.id, label = home.label, category = home.category, coords = home.coords, inside = home.inside }
+        end
+    end
+    return homes
 end
 
 local function dossierFor(source, row)
@@ -218,6 +233,8 @@ exports('CanUseSpawn', function(source, spawnId)
     for _, location in ipairs(Config.Spawn.locations) do
         if location.id == spawnId then return passesSpawnPermission(source, player.PlayerData, location) end
     end
+    local home = XSHomes.find(source, spawnId)
+    if home then return providersAllow(source, player.PlayerData, home) end
     return false
 end)
 exports('RegisterSlotProvider', function(callback) return registerProvider(slotProviders, callback) end)
@@ -247,6 +264,7 @@ AddEventHandler('playerDropped', function()
     cooldowns[src] = nil
     awaitingSpawn[src] = nil
     spawnConfirmation[src] = nil
+    enteringHome[src] = nil
 end)
 
 AddEventHandler('QBCore:Server:OnPlayerUnload', function(source)
@@ -293,7 +311,7 @@ RegisterNetEvent('XS-MultiCharacter:server:load', function(citizenid)
         XSStorage.markSelected(citizenid)
         activeSessions[src] = { citizenid = citizenid, startedAt = os.time() }
         TriggerEvent('XS-MultiCharacter:server:characterSelected', src, data)
-        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, citizenid, data.position, false, data, allowedSpawnIds(src, data))
+        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, citizenid, data.position, false, data, allowedSpawnIds(src, data), { homes = allowedHomes(src, data) })
     else
         refocus(src, 'invalidCharacter')
     end
@@ -324,10 +342,11 @@ RegisterNetEvent('XS-MultiCharacter:server:create', function(data)
         XSStorage.ensureActivity(playerData.citizenid)
         XSStorage.markSelected(playerData.citizenid)
         activeSessions[src] = { citizenid = playerData.citizenid, startedAt = os.time() }
-        if not Config.FirstCharacter.apartments.enabled then spawnConfirmation[src] = 'default' end
+        local skipApartments = XSHomes.givesStarter()
+        if not Config.FirstCharacter.apartments.enabled or skipApartments then spawnConfirmation[src] = 'default' end
         XSStarter.give(src, playerData)
         TriggerEvent('XS-MultiCharacter:server:characterCreated', src, playerData)
-        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {})
+        TriggerClientEvent('XS-MultiCharacter:client:loggedIn', src, playerData.citizenid, nil, true, playerData, {}, { skipApartments = skipApartments })
     else
         refocus(src)
     end
@@ -426,18 +445,29 @@ RegisterNetEvent('XS-MultiCharacter:server:selectSpawn', function(spawnId)
         for _, configured in ipairs(Config.Spawn.locations) do
             if configured.id == spawnId then location = configured break end
         end
-        if location and passesSpawnPermission(src, data, location) then coords = location.coords end
+        if location and passesSpawnPermission(src, data, location) then
+            coords = location.coords
+        elseif not location then
+            local home = XSHomes.find(src, spawnId)
+            if home and providersAllow(src, data, home) then coords, location = home.coords, home end
+        end
     end
     if not coords then return XSBridge.notify(src, XSLocale('invalidSpawn'), 'error') end
     awaitingSpawn[src] = nil
     spawnConfirmation[src] = spawnId
-    TriggerClientEvent('XS-MultiCharacter:client:spawnApproved', src, spawnId, coords)
+    enteringHome[src] = location.housing and location.inside and location or nil
+    TriggerClientEvent('XS-MultiCharacter:client:spawnApproved', src, spawnId, coords, enteringHome[src] ~= nil)
 end)
 
 RegisterNetEvent('XS-MultiCharacter:server:spawned', function(spawnId)
     local src = source
     if spawnConfirmation[src] ~= spawnId then return end
     spawnConfirmation[src] = nil
+    local home = enteringHome[src]
+    enteringHome[src] = nil
+    if home and home.id == spawnId and not XSHomes.enter(src, home) then
+        TriggerClientEvent('XS-MultiCharacter:client:homeFailed', src)
+    end
     local player = XSBridge.getPlayer(src)
     if player then TriggerEvent('XS-MultiCharacter:server:characterSpawned', src, player.PlayerData, spawnId) end
 end)

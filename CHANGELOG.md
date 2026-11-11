@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.0
+
+- Your XS-Housing homes show in the spawn picker. Homes with an inside put you inside
+- New characters skip the apartment picker while XS-Housing gives them a starter apartment
+
+Copy the new housing options in Config.Spawn and Config.FirstCharacter.apartments if you want to change them. No SQL to run.
+
 ## 3.0.2
 
 - Character photos are sharp now. Each one is taken with a close-up camera while a short loading screen shows. This needs screenshot-basic; without it the old photos are used

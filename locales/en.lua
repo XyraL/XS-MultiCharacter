@@ -66,6 +66,9 @@ Locales.en = {
     cameraNote = 'The camera is showing you the spot.',
     lastLocation = 'Last location',
     lastLocationDescription = 'Pick up where you left off',
+    homesCategory = 'Homes',
+    homeDoor = 'At the front door',
+    homeInside = 'Inside your place',
 
     coverText = 'Getting your characters ready',
 

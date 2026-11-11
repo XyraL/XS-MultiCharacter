@@ -52,7 +52,12 @@ Config.FirstCharacter = {
         -- Standard Qbox/QBCore apartments open first-character clothing after
         -- the apartment is picked. Turn this off only if your custom apartment
         -- event does not handle clothing for you.
-        opensClothingAfterSelection = true
+        opensClothingAfterSelection = true,
+
+        -- XS-Housing gives new characters its own starter apartment. On auto
+        -- this picker is skipped while XS-Housing has starter apartments on.
+        -- skip or show forces it either way. Only used while XS-Housing runs.
+        xsHousing = 'auto' -- auto, skip, show
     }
 }
 
@@ -64,9 +69,17 @@ Config.Spawn = {
 
     categories = {
         { id = 'recent', label = 'Recent' },
+        { id = 'homes', label = 'Homes' },
         { id = 'city', label = 'Los Santos' },
         { id = 'county', label = 'Blaine County' },
         { id = 'restricted', label = 'Restricted' }
+    },
+
+    -- Places the character owns or has keys to in XS-Housing, while it runs.
+    -- Places with their own interior spawn the character inside.
+    housing = {
+        enabled = true,
+        category = 'homes'
     },
 
     -- Permission options are all optional. When more than one is present the

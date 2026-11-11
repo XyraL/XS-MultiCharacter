@@ -51,6 +51,7 @@ New characters get a simple form with the starter kit laid out next to it, then 
 - `qbx_core` or `qb-core`
 - An appearance resource if you want saved clothing and first-character setup
 - `qbx_apartments` or `qb-apartments` if you want starting apartments
+- `XS-Housing` if you want players to spawn at their own places (optional)
 - `screenshot-basic` for sharp character photos (optional)
 
 ## Install
@@ -255,6 +256,14 @@ end)
 
 Returning `false` blocks the location. Returning `nil` leaves the normal result alone.
 
+## XS-Housing
+
+When XS-Housing is running, the places a character owns or has keys to show in the spawn picker under Homes. Places with their own interior put the character inside. Everything else spawns them at the front door.
+
+Turn on Spawn at home in XS-Housing as well, or the list stays empty. The category and an off switch are in `Config.Spawn.housing`.
+
+These places also go through spawn providers. Their `location.housing` is `true` and their IDs start with `home:`.
+
 ## Saved appearances
 
 The default query expects this common layout:
@@ -383,6 +392,8 @@ New character -> Arrival -> Apartment -> Clothing
 The standard Qbox and QBCore apartment resources open first-character clothing after the apartment is picked, so it leaves that handoff to them. This keeps the apartment selector and clothing menu from opening over each other.
 
 Auto only knows `qbx_apartments` and `qb-apartments`. If yours is a renamed fork, put its name in `Config.FirstCharacter.apartments.resource` so the handoff still happens.
+
+XS-Housing gives new characters its own starter apartment. While it runs with starter apartments on, the apartment picker here is skipped, so a new character never gets two apartments. To force it either way, set `Config.FirstCharacter.apartments.xsHousing` to `skip` or `show`.
 
 With no apartment resource to hand off to, it spawns at `Config.Spawn.default` and opens clothing itself. Before it does, it waits for anything else that took the screen to close, and drops out entirely if another resource opens the first-character editor first. Timings are in `Config.FirstCharacter.clothing`.
 

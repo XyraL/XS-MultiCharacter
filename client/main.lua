@@ -3,6 +3,7 @@ local characters, spawnOptions = {}, {}
 local activeCharacter, activeCharacterData
 local waitingForClothing, selectorOpen = false, false
 local openingClothing, clothingHandledElsewhere = false, false
+local skipApartments = false
 local previewToken = 0
 
 if not XSValidation.print('client') then return end
@@ -135,7 +136,7 @@ local function savedAppearance()
     return nil
 end
 
-local function spawnAt(coords, spawnId)
+local function spawnAt(coords, spawnId, inside)
     coords = coords or Config.Spawn.default
     fadeOut()
     removeScene()
@@ -150,7 +151,15 @@ local function spawnAt(coords, spawnId)
     XSBridge.clearInside()
     XSBridge.playerLoaded()
     XSPed.begin(savedAppearance())
-    DoScreenFadeIn(700)
+    if inside then
+        CreateThread(function()
+            local deadline = GetGameTimer() + 10000
+            while IsScreenFadedOut() and GetGameTimer() < deadline do Wait(100) end
+            if IsScreenFadedOut() then DoScreenFadeIn(700) end
+        end)
+    else
+        DoScreenFadeIn(700)
+    end
     TriggerEvent('XS-MultiCharacter:client:characterSpawned', activeCharacter, spawnId, coords)
     TriggerServerEvent('XS-MultiCharacter:server:spawned', spawnId)
 end
@@ -162,7 +171,26 @@ local function cameraFor(location)
     return vec3(coords.x + distance, coords.y + distance, coords.z + height), vec3(coords.x, coords.y, coords.z)
 end
 
-local function openSpawns(position, allowedIds)
+local function spawnCategories(hasHomes)
+    local categories = Config.Spawn.categories
+    if not hasHomes then return categories end
+    local homes = (Config.Spawn.housing or {}).category or 'homes'
+    for _, category in ipairs(categories) do
+        if category.id == homes then return categories end
+    end
+    local list, added = {}, false
+    for _, category in ipairs(categories) do
+        list[#list + 1] = category
+        if category.id == Config.Spawn.lastLocationCategory then
+            list[#list + 1] = { id = homes, label = XSLocale('homesCategory') }
+            added = true
+        end
+    end
+    if not added then table.insert(list, 1, { id = homes, label = XSLocale('homesCategory') }) end
+    return list
+end
+
+local function openSpawns(position, allowedIds, homes)
     XSSceneEffects.stopOrbit()
     local allowed, options = {}, {}
     for _, id in ipairs(allowedIds or {}) do allowed[id] = true end
@@ -179,9 +207,25 @@ local function openSpawns(position, allowedIds)
             options[#options + 1] = location
         end
     end
+    local homeCount = 0
+    for _, home in ipairs(type(homes) == 'table' and homes or {}) do
+        local coords = home.coords
+        if coords and coords.x then
+            homeCount = homeCount + 1
+            options[#options + 1] = {
+                id = home.id, label = home.label, category = home.category,
+                description = XSLocale(home.inside and 'homeInside' or 'homeDoor'),
+                district = GetLabelText(GetNameOfZone(coords.x, coords.y, coords.z)), coords = coords
+            }
+        end
+    end
     spawnOptions = options
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = 'spawns', locations = options, categories = Config.Spawn.categories })
+    SendNUIMessage({ action = 'spawns', locations = options, categories = spawnCategories(homeCount > 0) })
+end
+
+local function apartmentsWanted()
+    return Config.FirstCharacter.apartments.enabled and not skipApartments
 end
 
 local function openApartmentsAfterClothing()
@@ -190,7 +234,7 @@ local function openApartmentsAfterClothing()
     CreateThread(function()
         local deadline = GetGameTimer() + 3000
         while IsNuiFocused() and GetGameTimer() < deadline do Wait(100) end
-        if Config.FirstCharacter.apartments.enabled
+        if apartmentsWanted()
             and Config.FirstCharacter.apartments.opensClothingAfterSelection == false then
             XSBridge.openApartments(activeCharacterData or activeCharacter)
         end
@@ -288,8 +332,10 @@ RegisterNetEvent('XS-MultiCharacter:client:adminEdited', function(payload)
     SendNUIMessage({ action = 'adminEdited', ok = payload.ok == true, message = payload.message, row = payload.row })
 end)
 
-RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, position, isNew, playerData, allowedSpawns)
+RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, position, isNew, playerData, allowedSpawns, extra)
+    extra = type(extra) == 'table' and extra or {}
     activeCharacter, activeCharacterData = citizenid, playerData
+    skipApartments = extra.skipApartments == true
     TriggerEvent('XS-MultiCharacter:client:characterSelected', citizenid, isNew, playerData)
     if isNew then
         waitingForClothing = false
@@ -303,7 +349,7 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
 
         -- The stock apartment flow opens clothing after the apartment is made.
         -- Starting either of those here would make the two menus overlap.
-        if Config.FirstCharacter.apartments.enabled
+        if apartmentsWanted()
             and Config.FirstCharacter.apartments.opensClothingAfterSelection ~= false
             and XSBridge.openApartments(activeCharacterData or activeCharacter) then
             XSPed.begin(nil)
@@ -320,12 +366,16 @@ RegisterNetEvent('XS-MultiCharacter:client:loggedIn', function(citizenid, positi
             openApartmentsAfterClothing()
         end
     else
-        openSpawns(position, allowedSpawns)
+        openSpawns(position, allowedSpawns, extra.homes)
     end
 end)
 
-RegisterNetEvent('XS-MultiCharacter:client:spawnApproved', function(spawnId, coords)
-    spawnAt(coords, spawnId)
+RegisterNetEvent('XS-MultiCharacter:client:spawnApproved', function(spawnId, coords, inside)
+    spawnAt(coords, spawnId, inside == true)
+end)
+
+RegisterNetEvent('XS-MultiCharacter:client:homeFailed', function()
+    if IsScreenFadedOut() or IsScreenFadingOut() then DoScreenFadeIn(700) end
 end)
 
 RegisterNetEvent('XS-MultiCharacter:client:refresh', function()

@@ -2,6 +2,7 @@ XSValidation = {}
 
 local allowedFrameworks = { auto = true, qbox = true, qbcore = true }
 local allowedAppearance = { auto = true, ['illenium-appearance'] = true, ['fivem-appearance'] = true, ['qb-clothing'] = true, none = true }
+local allowedHousingStarter = { auto = true, skip = true, show = true }
 
 local function add(errors, condition, message)
     if not condition then errors[#errors + 1] = message end
@@ -17,6 +18,14 @@ function XSValidation.run(side)
     add(errors, type(apartments) == 'table', 'Config.FirstCharacter.apartments is missing.')
     if apartments then
         add(errors, type(apartments.opensClothingAfterSelection) == 'boolean', 'Apartment opensClothingAfterSelection must be true or false.')
+        add(errors, apartments.xsHousing == nil or allowedHousingStarter[apartments.xsHousing] == true, 'Apartment xsHousing must be auto, skip, or show.')
+    end
+    local housing = Config.Spawn and Config.Spawn.housing
+    if housing ~= nil then
+        add(errors, type(housing) == 'table', 'Config.Spawn.housing must be a table.')
+        if type(housing) == 'table' then
+            add(errors, housing.category == nil or (type(housing.category) == 'string' and housing.category ~= ''), 'Config.Spawn.housing.category must be a category id.')
+        end
     end
     local hint = Config.Characters and Config.Characters.dateFormatHint
     add(errors, type(hint) == 'string' and hint:find('YYYY', 1, true) ~= nil and hint:find('MM', 1, true) ~= nil and hint:find('DD', 1, true) ~= nil,
